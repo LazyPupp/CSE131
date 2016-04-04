@@ -65,9 +65,80 @@ BOOLEAN   (true|false)
   * %% markers which delimit the Rules section. 
   */ 
 
-[\n]		{currentLineNum++; currentColNum = 1;}
+[\n]		  {currentLineNum++; 
+           currentColNum = 1;}
+"void" 		{return T_Void;}
+"bool"    { return T_Bool; }
+"float"   {return T_Float;} 
+"int"     {return T_Int;}
+"uint"    {return T_Uint;}
+"vec2"    {return T_Vec2;} 
+"vec3"    {return T_Vec3;} 
+"vec4"    {return T_Vec4;} 
+"ivec2"   {return T_Ivec2;} 
+"ivec3"   {return T_Ivec3;} 
+"ivec4"   {return T_Ivec4;}
+"bvec2"   {return T_Bvec2;} 
+"bvec3"   {return T_Bvec3;}
+"bvec4"   {return T_Bvec4;}
+"uvec2"   {return T_Uvec2;}
+"uvec3"   {return T_Uvec3;}
+"uvec4"   {return T_Uvec4;} 
+"mat2"    {return T_Mat2;} 
+"mat3"    {return T_Mat3;} 
+"mat4"    {return T_Mat4;} 
+"struct"  {return T_Struct;} 
+"in"      {return T_In;} 
+"out"     {return T_Out;} 
+"const"    {return T_Const;}
+"uniform"  {return T_Uniform;}
+"while"    {return T_While;} 
+"break"    {return T_Break;}
+"continue" {return T_Continue;}
+"do"       {return T_Do;}
+"else"     {return T_Else;} 
+"for"      {return T_For;} 
+"if"       {return T_If;}
+"return"   {return T_Return;} 
+"switch"   {return T_Switch;}
+"case"     {return T_Case;}
+"default"  {return T_Default;}
 
-void 		{return T_Void;}
+"++"    {T_Inc;}
+"--"    {T_Dec;}
+"<="    {T_LessEqual;}
+">="    {T_GreaterEqual;}
+"=="    {T_EQ;}
+"!="    {T_NE;}
+"&&"    {T_And;} 
+"||"    {T_Or;}
+"*="    {T_MulAssign;}
+"/="    {T_DivAssign;}
+"+="    {T_AddAssign;}
+"-="    {T_SubAssign;}
+"("    {T_LeftParen;}
+")"    {T_RightParen;}
+"["    {T_LeftBracket;}
+"]"    {T_RightBracket;}
+"{"    {T_LeftBrace;}
+"}"    {T_RightBrace;}
+"."    {T_Dot;}
+":"    {{T_Colon;}
+"="    {T_Equal;}
+";"   {T_Semicolon;}
+"-"    {T_Dash;}
+"+"    {T_Plus,
+"*"    {T_Star,
+"/"    {T_Slash,
+"<"    {T_LeftAngle,
+">"    {T_RightAngle,
+"?"    {T_Question,
+    {T_NumTokenTypes
+
+[0-9]+    { yylval.integerConstant = strtol(yytext, NULL, 10);
+                   return T_IntConstant; }
+[a-z]+    { yylval.identifier = strdup(yytext); 
+              return T_Identifier;}
 
 %%
 
