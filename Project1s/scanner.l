@@ -104,41 +104,50 @@ BOOLEAN   (true|false)
 "case"     {return T_Case;}
 "default"  {return T_Default;}
 
-"++"    {T_Inc;}
-"--"    {T_Dec;}
-"<="    {T_LessEqual;}
-">="    {T_GreaterEqual;}
-"=="    {T_EQ;}
-"!="    {T_NE;}
-"&&"    {T_And;} 
-"||"    {T_Or;}
-"*="    {T_MulAssign;}
-"/="    {T_DivAssign;}
-"+="    {T_AddAssign;}
-"-="    {T_SubAssign;}
-"("    {T_LeftParen;}
-")"    {T_RightParen;}
-"["    {T_LeftBracket;}
-"]"    {T_RightBracket;}
-"{"    {T_LeftBrace;}
-"}"    {T_RightBrace;}
-"."    {T_Dot;}
-":"    {{T_Colon;}
-"="    {T_Equal;}
-";"   {T_Semicolon;}
-"-"    {T_Dash;}
-"+"    {T_Plus,
-"*"    {T_Star,
-"/"    {T_Slash,
-"<"    {T_LeftAngle,
-">"    {T_RightAngle,
-"?"    {T_Question,
+[a-z]+    { yylval.identifier = strdup(yytext);
+            return T_Identifier;}
+[a-z]+    { yylval.identifier = strdup(yytext);
+            return T_TypeName;}
+
+[0-9]+    { yylval.integerConstant = atoi(yytext);
+            return T_IntConstant;} 
+          {T_UintConstant;} 
+[0-9]+"."[0-9]+    { yylval.floatConstant = atoi(yytext);
+                   return T_FloatConstant;} 
+[true | false]    {T_BoolConstant;} 
+    {T_FieldSelection;}
+
+"++"    {return T_Inc;}
+"--"    {return T_Dec;}
+"<="    {return T_LessEqual;}
+">="    {return T_GreaterEqual;}
+"=="    {return T_EQ;}
+"!="    {return T_NE;}
+"&&"    {return T_And;} 
+"||"    {return T_Or;}
+"*="    {return T_MulAssign;}
+"/="    {return T_DivAssign;}
+"+="    {return T_AddAssign;}
+"-="    {return T_SubAssign;}
+"("    {return T_LeftParen;}
+")"    {return T_RightParen;}
+"["    {return T_LeftBracket;}
+"]"    {return T_RightBracket;}
+"{"    {return T_LeftBrace;}
+"}"    {return T_RightBrace;}
+"."    {return T_Dot;}
+":"    {return T_Colon;}
+"="    {return T_Equal;}
+";"    {return T_Semicolon;}
+"-"    {return T_Dash;}
+"+"    {return T_Plus;}
+"*"    {return T_Star;}
+"/"    {return T_Slash;}
+"<"    {return T_LeftAngle;}
+">"    {return T_RightAngle;}
+"?"    {return T_Question;}
     {T_NumTokenTypes
 
-[0-9]+    { yylval.integerConstant = strtol(yytext, NULL, 10);
-                   return T_IntConstant; }
-[a-z]+    { yylval.identifier = strdup(yytext); 
-              return T_Identifier;}
 
 %%
 
