@@ -66,7 +66,9 @@ BOOLEAN   (true|false)
   */ 
 
 [\n]		  {currentLineNum++; 
-           currentColNum = 1;}
+                   currentColNum = 1;}
+[ ]            
+[\t]            { currentColNum += 8 - currentColNum % 8; }
 "void" 		{return T_Void;}
 "bool"    { return T_Bool; }
 "float"   {return T_Float;} 
@@ -103,19 +105,28 @@ BOOLEAN   (true|false)
 "switch"   {return T_Switch;}
 "case"     {return T_Case;}
 "default"  {return T_Default;}
+"true"    { yylval.boolConstant = true;
+                   return T_BoolConstant;} 
+"false"   { yylval.boolConstant = false;
+		return T_BoolConstant;}
 
-[a-z]+    { yylval.identifier = strdup(yytext);
-            return T_Identifier;}
-[a-z]+    { yylval.identifier = strdup(yytext);
-            return T_TypeName;}
+[a-zA-Z]+[0-9]*[a-zA-Z]*    { strcpy(yylval.identifier,yytext); 
+                               return T_Identifier;}
+ /*[a-zA-Z]+[0-9]*[a-zA-Z]*  {  strcpy(yylval.identifier,yytext); 
+                               return T_FieldSelection;} */
+
+ /* [a-z]+    { strcpy(yylval.identifier,yytext);
+            return T_TypeName;} Not needed?*/
 
 [0-9]+    { yylval.integerConstant = atoi(yytext);
             return T_IntConstant;} 
-          {T_UintConstant;} 
-[0-9]+"."[0-9]+    { yylval.floatConstant = atoi(yytext);
-                   return T_FloatConstant;} 
-[true | false]    {T_BoolConstant;} 
-    {T_FieldSelection;}
+[0-9]+    { yylval.integerConstant = atoi(yytext);
+            return T_UintConstant;} 
+[0-9]+"."[0-9]*[f]?    { yylval.floatConstant = atof(yytext);
+                                            return T_FloatConstant;} 
+
+
+   /* {T_FieldSelection;} */
 
 "++"    {return T_Inc;}
 "--"    {return T_Dec;}
@@ -146,7 +157,13 @@ BOOLEAN   (true|false)
 "<"    {return T_LeftAngle;}
 ">"    {return T_RightAngle;}
 "?"    {return T_Question;}
-    {T_NumTokenTypes
+"//".*   { }
+    /* exponent
+       multicomment
+       fieldselection
+       1023+ string length
+    */
+    /*{T_NumTokenTypes*/
 
 
 %%
