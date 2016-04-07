@@ -32,6 +32,7 @@ YYSTYPE yylval;  // manually declared for pp1, later Yacc provides
  * just scanned to the client. (Operates similarly to yylval above)
  */
 struct yyltype yylloc; // manually dclared for pp1, later Yacc provides
+bool dot = false;
 
 /* Macro: YY_USER_ACTION 
  * ---------------------
@@ -58,6 +59,7 @@ int currentLineNum, currentColNum;
   */
 
 BOOLEAN   (true|false)
+NUMBERS   [0-9]
 
 %x ML_COMMENT
 %%             /* BEGIN RULES SECTION */
@@ -110,13 +112,15 @@ BOOLEAN   (true|false)
 "false"   { yylval.boolConstant = false;
 		return T_BoolConstant;}
 
-[a-zA-Z]+[a-zA-Z0-9_]*    { 
+[_a-zA-Z]+[a-zA-Z0-9_]*    { 
 			       if(yyleng <= 31){
-			         strncpy(yylval.identifier,yytext,yyleng); 
+			         strcpy(yylval.identifier,yytext); 
                                  return T_Identifier;
 			       }
 			       else if( yyleng > 1023){
-                                 ReportError::LongIdentifier(&yylloc,yytext); 
+                                 ReportError::LongIdentifier(&yylloc,yytext);
+			         strncpy(yylval.identifier,yytext,31);
+				 return T_Identifier;
 			       }
 			       else{
 			         strncpy(yylval.identifier,yytext,31);
@@ -126,12 +130,13 @@ BOOLEAN   (true|false)
 
  /* [a-z]+    { strcpy(yylval.identifier,yytext);
             return T_TypeName;} Not needed?*/
+"."    {return T_Dot;}
 
 [0-9]+[E]?[0-9]+    { yylval.integerConstant = atoi(yytext);
             return T_IntConstant;} 
 [0-9]+"u"[E]?[0-9]+    { yylval.integerConstant = atoi(yytext);
             return T_UintConstant;} 
-[0-9]+"."[0-9]*[f]?[E]?[0-9]+    { yylval.floatConstant = atof(yytext);
+ (({NUMBERS}*\.{NUMBERS}+)[fF]?|({NUMBERS}*)\.{NUMBERS}*([Ee][+-]?{NUMBERS}+)?)[fF]?   { yylval.floatConstant = atof(yytext);
                                             return T_FloatConstant;} 
 
 
@@ -155,7 +160,6 @@ BOOLEAN   (true|false)
 "]"    {return T_RightBracket;}
 "{"    {return T_LeftBrace;}
 "}"    {return T_RightBrace;}
-"."    {return T_Dot;}
 ":"    {return T_Colon;}
 "="    {return T_Equal;}
 ";"    {return T_Semicolon;}
@@ -179,29 +183,32 @@ BOOLEAN   (true|false)
                currentLineNum++;
                yylloc.first_column = 0;
                yylloc.last_column = 0;
+		currentColNum = 0;
 	     }
 	     else if(input == '*'){
                if( yyinput() == '/'){
 		yylloc.first_line = currentLineNum;
+		yylloc.first_column = currentColNum++;
                 yylloc.last_column = (yylloc.last_column + 1);
-		yylloc.first_column = currentColNum;
  		break;
 		}
 		else{
+		  yylloc.first_column =currentColNum++;
 		  yylloc.last_column = (yylloc.last_column + 1);
-		  yylloc.first_column =currentColNum;
 		  yylloc.first_line = currentLineNum;
 		}
 	     }
 	     else{
-		yylloc.first_column = currentColNum;
+		yylloc.first_column = currentColNum++;
 		yylloc.last_column = (yylloc.last_column + 1);
 		yylloc.first_line = currentLineNum;
 	     }	
 	  } 
        }
-    /* exponeint
+    /* 
        fieldselection
+	multiline
+	truncate
     */
 
 .  { ReportError::UnrecogChar(&yylloc, yytext[0]);}
