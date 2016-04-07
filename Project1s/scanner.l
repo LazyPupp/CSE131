@@ -68,7 +68,7 @@ BOOLEAN   (true|false)
 [\n]		  {currentLineNum++; 
                    currentColNum = 1;}
 [ ]            
-[\t]            { currentColNum += 8 - currentColNum % 8; }
+[\t]            { currentColNum += 8 - ((currentColNum-1) % 8); }
 "void" 		{return T_Void;}
 "bool"    { return T_Bool; }
 "float"   {return T_Float;} 
@@ -110,19 +110,28 @@ BOOLEAN   (true|false)
 "false"   { yylval.boolConstant = false;
 		return T_BoolConstant;}
 
-[a-zA-Z]+[0-9]*[a-zA-Z]*    { strcpy(yylval.identifier,yytext); 
-                               return T_Identifier;}
- /*[a-zA-Z]+[0-9]*[a-zA-Z]*  {  strcpy(yylval.identifier,yytext); 
-                               return T_FieldSelection;} */
+[a-zA-Z]+[a-zA-Z0-9_]*    { 
+			       if(yyleng <= 31){
+			         strncpy(yylval.identifier,yytext,yyleng); 
+                                 return T_Identifier;
+			       }
+			       else if( yyleng > 1023){
+                                 ReportError::LongIdentifier(&yylloc,yytext); 
+			       }
+			       else{
+			         strncpy(yylval.identifier,yytext,31);
+				 return T_Identifier;
+                               }
+			  }
 
  /* [a-z]+    { strcpy(yylval.identifier,yytext);
             return T_TypeName;} Not needed?*/
 
-[0-9]+    { yylval.integerConstant = atoi(yytext);
+[0-9]+[E]?[0-9]+    { yylval.integerConstant = atoi(yytext);
             return T_IntConstant;} 
-[0-9]+    { yylval.integerConstant = atoi(yytext);
+[0-9]+"u"[E]?[0-9]+    { yylval.integerConstant = atoi(yytext);
             return T_UintConstant;} 
-[0-9]+"."[0-9]*[f]?    { yylval.floatConstant = atof(yytext);
+[0-9]+"."[0-9]*[f]?[E]?[0-9]+    { yylval.floatConstant = atof(yytext);
                                             return T_FloatConstant;} 
 
 
@@ -158,12 +167,44 @@ BOOLEAN   (true|false)
 ">"    {return T_RightAngle;}
 "?"    {return T_Question;}
 "//".*   { }
-    /* exponent
-       multicomment
+"/*"   { register int input;
+          while(4==4)
+	  {
+             input = yyinput();
+	     if( input == EOF){
+	       ReportError::UntermComment();
+               break;	
+	     }
+	     else if( input == '\n'){
+               currentLineNum++;
+               yylloc.first_column = 0;
+               yylloc.last_column = 0;
+	     }
+	     else if(input == '*'){
+               if( yyinput() == '/'){
+		yylloc.first_line = currentLineNum;
+                yylloc.last_column = (yylloc.last_column + 1);
+		yylloc.first_column = currentColNum;
+ 		break;
+		}
+		else{
+		  yylloc.last_column = (yylloc.last_column + 1);
+		  yylloc.first_column =currentColNum;
+		  yylloc.first_line = currentLineNum;
+		}
+	     }
+	     else{
+		yylloc.first_column = currentColNum;
+		yylloc.last_column = (yylloc.last_column + 1);
+		yylloc.first_line = currentLineNum;
+	     }	
+	  } 
+       }
+    /* exponeint
        fieldselection
-       1023+ string length
     */
-    /*{T_NumTokenTypes*/
+
+.  { ReportError::UnrecogChar(&yylloc, yytext[0]);}
 
 
 %%
