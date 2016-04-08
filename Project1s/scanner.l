@@ -111,7 +111,7 @@ NUMBERS   [0-9]
                    return T_BoolConstant;} 
 "false"   { yylval.boolConstant = false;
 		return T_BoolConstant;}
-[0-9]+"u"[eE]?[+-]?[0-9]*    { yylval.integerConstant = atoi(yytext);
+[0-9]+"u"    { yylval.integerConstant = atoi(yytext);
             		return T_UintConstant;} 
 
 
@@ -152,7 +152,7 @@ NUMBERS   [0-9]
 "."    {  dot = true;
           return T_Dot;}
 
-[0-9]+[eE]?[+-]?[0-9]+   { yylval.integerConstant = atoi(yytext);
+[0-9]+  { yylval.integerConstant = atoi(yytext);
             return T_IntConstant;} 
  (({NUMBERS}*\.{NUMBERS}+)[fF]?|({NUMBERS}*)\.{NUMBERS}*([Ee][+-]?{NUMBERS}+)?)[fF]?   { yylval.floatConstant = atof(yytext);
                                             return T_FloatConstant;} 
