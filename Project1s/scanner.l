@@ -131,6 +131,7 @@ NUMBERS   [0-9]
                                }
 			    }
 			      else{
+			       dot = false;
 			       if(yyleng <= 31){
 			         strcpy(yylval.identifier,yytext); 
                                  return T_FieldSelection;
@@ -156,6 +157,7 @@ NUMBERS   [0-9]
             return T_IntConstant;} 
  (({NUMBERS}*\.{NUMBERS}+)[fF]?|({NUMBERS}*)\.{NUMBERS}*([Ee][+-]?{NUMBERS}+)?)[fF]?   { yylval.floatConstant = atof(yytext);
                                             return T_FloatConstant;} 
+ /*[[0-9]*"."[0-9]+][Ee][+-]?[0-9]+[Ff]?*/
 
 "++"    {return T_Inc;}
 "--"    {return T_Dec;}
