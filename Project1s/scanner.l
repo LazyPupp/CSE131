@@ -70,8 +70,9 @@ NUMBERS   [0-9]
 [\n]		  {currentLineNum++; 
                    currentColNum = 1;}
 [ ]             {  }
-[\t]            {   if( (currentColNum %8) != 1)
-                         currentColNum += 8 - currentColNum-1 % 8+1;
+[\t]            {  currentColNum --;
+			
+                         currentColNum += 8 -( (currentColNum-1) % 8);
 		  }
 "void" 		{return T_Void;}
 "bool"    { return T_Bool; }
@@ -206,9 +207,10 @@ NUMBERS   [0-9]
 			currentColNum = 1;
 			yylloc.first_column = currentColNum;
 			yylloc.last_column = currentColNum; }
-<ML_COMMENT>\t         {  if( (currentColNum %8) != 1)
-                            currentColNum += 8 -currentColNum-1 % 8 + 1; }
-<ML_COMMENT>EOF         {ReportError::UntermComment();} 
+<ML_COMMENT>\t         {  currentColNum--;
+                            currentColNum += 8 -((currentColNum-1) % 8); }
+<ML_COMMENT><<EOF>>         {ReportError::UntermComment();
+			     yyterminate();} 
 <ML_COMMENT>"*"+"/"     {BEGIN(INITIAL);} 
 
 
