@@ -111,8 +111,11 @@ NUMBERS   [0-9]
                    return T_BoolConstant;} 
 "false"   { yylval.boolConstant = false;
 		return T_BoolConstant;}
+[0-9]+"u"[eE]?[+-]?[0-9]*    { yylval.integerConstant = atoi(yytext);
+            		return T_UintConstant;} 
 
-[_a-zA-Z]+[a-zA-Z0-9_]*    { 
+
+[_a-zA-Z]+[a-zA-Z0-9_]*    { if( dot == false){ 
 			       if(yyleng <= 31){
 			         strcpy(yylval.identifier,yytext); 
                                  return T_Identifier;
@@ -126,21 +129,33 @@ NUMBERS   [0-9]
 			         strncpy(yylval.identifier,yytext,31);
 				 return T_Identifier;
                                }
+			    }
+			      else{
+			       if(yyleng <= 31){
+			         strcpy(yylval.identifier,yytext); 
+                                 return T_FieldSelection;
+			       }
+			       else if( yyleng > 1023){
+                                 ReportError::LongIdentifier(&yylloc,yytext);
+			         strncpy(yylval.identifier,yytext,31);
+				 return T_FieldSelection;
+			       }
+			       else{
+			         strncpy(yylval.identifier,yytext,31);
+				 return T_FieldSelection;
+                               }
+			      }
 			  }
 
  /* [a-z]+    { strcpy(yylval.identifier,yytext);
             return T_TypeName;} Not needed?*/
-"."    {return T_Dot;}
+"."    {  dot = true;
+          return T_Dot;}
 
-[0-9]+[E]?[0-9]+    { yylval.integerConstant = atoi(yytext);
+[0-9]+[eE]?[+-]?[0-9]+   { yylval.integerConstant = atoi(yytext);
             return T_IntConstant;} 
-[0-9]+"u"[E]?[0-9]+    { yylval.integerConstant = atoi(yytext);
-            return T_UintConstant;} 
  (({NUMBERS}*\.{NUMBERS}+)[fF]?|({NUMBERS}*)\.{NUMBERS}*([Ee][+-]?{NUMBERS}+)?)[fF]?   { yylval.floatConstant = atof(yytext);
                                             return T_FloatConstant;} 
-
-
-   /* {T_FieldSelection;} */
 
 "++"    {return T_Inc;}
 "--"    {return T_Dec;}
@@ -171,7 +186,8 @@ NUMBERS   [0-9]
 ">"    {return T_RightAngle;}
 "?"    {return T_Question;}
 "//".*   { }
-"/*"   { register int input;
+"/*"     {register int input;
+	  register int input2;
           while(4==4)
 	  {
              input = yyinput();
@@ -186,16 +202,33 @@ NUMBERS   [0-9]
 		currentColNum = 0;
 	     }
 	     else if(input == '*'){
-               if( yyinput() == '/'){
+               input2 = yyinput();
+               currentColNum++;
+               if( input2 == '/'){
 		yylloc.first_line = currentLineNum;
 		yylloc.first_column = currentColNum++;
-                yylloc.last_column = (yylloc.last_column + 1);
+                yylloc.last_column = (yylloc.last_column + 2);
+		currentColNum++;
  		break;
 		}
+		else if( input2 == '\n'){
+		  currentColNum = 0;
+		  yylloc.first_column = currentColNum;
+		  yylloc.last_column = currentColNum;
+		  yylloc.first_line = currentLineNum++;
+		}
 		else{
+		currentColNum++;
+		  if(yyinput() != '\n'){
 		  yylloc.first_column =currentColNum++;
 		  yylloc.last_column = (yylloc.last_column + 1);
 		  yylloc.first_line = currentLineNum;
+		  }else{
+               currentLineNum++;
+               yylloc.first_column = 0;
+               yylloc.last_column = 0;
+		currentColNum = 0;
+		  }
 		}
 	     }
 	     else{
@@ -204,11 +237,10 @@ NUMBERS   [0-9]
 		yylloc.first_line = currentLineNum;
 	     }	
 	  } 
-       }
+       } 
     /* 
-       fieldselection
 	multiline
-	truncate
+	int and uint
     */
 
 .  { ReportError::UnrecogChar(&yylloc, yytext[0]);}
