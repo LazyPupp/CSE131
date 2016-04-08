@@ -1,0 +1,12 @@
+Patrick Nguyen A10847376 phn031@ucsd.edu
+Kyle Szeto A10907296 k2szeto@ucsd.edu
+
+                     Project Description
+
+To prepare for this assignment, we read the GLSL ES Specification manual to understand
+the forms for the different variable types. Also, we learned the three different sections
+to flex files: definitions, rules, and user defined subroutines. The basic keyword rules
+were easy to implement, however rules regarding integers, comments, truncation were harder 
+for us to express.
+For the rules regarding comments, we had to learn to use start conditions. We read about
+this flex feature and found it to be exactly what we needed to use.    

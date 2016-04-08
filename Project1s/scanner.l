@@ -50,7 +50,7 @@ static void DoBeforeEachAction();
 int currentLineNum, currentColNum;
 
 %}
-
+ 
  /* The section before the first %% is the Definitions section of the lex
   * input file. Here is where you set options for the scanner, define lex
   * states, and can set up definitions to give names to regular expressions
@@ -69,8 +69,10 @@ NUMBERS   [0-9]
 
 [\n]		  {currentLineNum++; 
                    currentColNum = 1;}
-[ ]            
-[\t]            { currentColNum += 8 - ((currentColNum-1) % 8); }
+[ ]             {  }
+[\t]            {   if( (currentColNum %8) != 1)
+                         currentColNum += 8 - currentColNum-1 % 8+1;
+		  }
 "void" 		{return T_Void;}
 "bool"    { return T_Bool; }
 "float"   {return T_Float;} 
@@ -111,7 +113,7 @@ NUMBERS   [0-9]
                    return T_BoolConstant;} 
 "false"   { yylval.boolConstant = false;
 		return T_BoolConstant;}
-[0-9]+"u"    { yylval.integerConstant = atoi(yytext);
+[0-9]+[uU]    { yylval.integerConstant = atoi(yytext);
             		return T_UintConstant;} 
 
 
@@ -150,14 +152,21 @@ NUMBERS   [0-9]
 
  /* [a-z]+    { strcpy(yylval.identifier,yytext);
             return T_TypeName;} Not needed?*/
+
+[0-9]*"."[0-9]+([Ee][+-]?[0-9]+)?[Ff]?     { yylval.floatConstant = atof(yytext);
+                                            return T_FloatConstant;} 
+[0-9]+"."[0-9]*([Ee][+-]?[0-9]+)?[Ff]?      { yylval.floatConstant = atof(yytext);
+                                            return T_FloatConstant;} 
+[0-9]+[Ee][+-]?[0-9]+[Ff]?     		  { yylval.floatConstant = atof(yytext);
+                                            return T_FloatConstant;} 
+
+
 "."    {  dot = true;
           return T_Dot;}
 
 [0-9]+  { yylval.integerConstant = atoi(yytext);
             return T_IntConstant;} 
- (({NUMBERS}*\.{NUMBERS}+)[fF]?|({NUMBERS}*)\.{NUMBERS}*([Ee][+-]?{NUMBERS}+)?)[fF]?   { yylval.floatConstant = atof(yytext);
-                                            return T_FloatConstant;} 
- /*[[0-9]*"."[0-9]+][Ee][+-]?[0-9]+[Ff]?*/
+
 
 "++"    {return T_Inc;}
 "--"    {return T_Dec;}
@@ -188,7 +197,22 @@ NUMBERS   [0-9]
 ">"    {return T_RightAngle;}
 "?"    {return T_Question;}
 "//".*   { }
-"/*"     {register int input;
+"/*"     { BEGIN(ML_COMMENT);}
+
+<ML_COMMENT>[^*\n\t]* 	{ }
+                          
+<ML_COMMENT>"*"+[^*/\n\t]* { }
+<ML_COMMENT>\n 		{currentLineNum++;
+			currentColNum = 1;
+			yylloc.first_column = currentColNum;
+			yylloc.last_column = currentColNum; }
+<ML_COMMENT>\t         {  if( (currentColNum %8) != 1)
+                            currentColNum += 8 -currentColNum-1 % 8 + 1; }
+<ML_COMMENT>EOF         {ReportError::UntermComment();} 
+<ML_COMMENT>"*"+"/"     {BEGIN(INITIAL);} 
+
+
+  /* {register int input;
 	  register int input2;
           while(4==4)
 	  {
@@ -234,15 +258,14 @@ NUMBERS   [0-9]
 		}
 	     }
 	     else{
+
 		yylloc.first_column = currentColNum++;
 		yylloc.last_column = (yylloc.last_column + 1);
 		yylloc.first_line = currentLineNum;
 	     }	
 	  } 
-       } 
+       } */
     /* 
-	multiline
-	int and uint
     */
 
 .  { ReportError::UnrecogChar(&yylloc, yytext[0]);}
