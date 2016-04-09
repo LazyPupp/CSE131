@@ -67,14 +67,13 @@ NUMBERS   [0-9]
   * %% markers which delimit the Rules section. 
   */ 
 
-[\n]		  {currentLineNum++; 
+[\n]		{  currentLineNum++; 
                    currentColNum = 1;}
 [ ]             {  }
 [\t]            {  currentColNum --;
-			
-                         currentColNum += 8 -( (currentColNum-1) % 8);
-		  }
-"void" 		{return T_Void;}
+		   currentColNum += 8 -( (currentColNum-1) % 8);}
+
+"void" 	  {return T_Void;}
 "bool"    { return T_Bool; }
 "float"   {return T_Float;} 
 "int"     {return T_Int;}

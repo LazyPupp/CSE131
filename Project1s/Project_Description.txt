@@ -6,7 +6,41 @@ Kyle Szeto A10907296 k2szeto@ucsd.edu
 To prepare for this assignment, we read the GLSL ES Specification manual to understand
 the forms for the different variable types. Also, we learned the three different sections
 to flex files: definitions, rules, and user defined subroutines. The basic keyword rules
-were easy to implement, however rules regarding integers, comments, truncation were harder 
-for us to express.
+were easy to implement, however rules regarding floats, comments, field selection, tabs, 
+and truncation were harder for us to express.
+
+We first finish the basic keyword rules by returning the correct token types for each 
+basic keyword rule. Then we made rules where it will eat up whitespace such as \n," ", 
+and \t and count the correct currentLineNum and currentColNum. After this step, we moved
+on to integers and floats. We convert the yytext to int for integers using atoi and 
+convert the yytext to float for floats using atof. The hard part about the floats was 
+that we did not know how to make the all of the exponent part not show up when it is 0. 
+We fixed this by reading about the patterns flex has on source forge and by 
+playing around with the parenthesis and bracket patterns. We then made three cases for 
+the floating-constant depending if it is digitsequence.digitsequece, digitsquence.,
+.digitsequence, or digit exponent-part floating-suffix. 
+
+
+
 For the rules regarding comments, we had to learn to use start conditions. We read about
-this flex feature and found it to be exactly what we needed to use.    
+this flex feature on source forge and found an example about commenting. We used the
+example as a template. We then focused on finding the correct way to output the
+right column numbers by learning how DoBeforeEachAction() works.
+
+For the field selection, we created a global boolean flag that allowed us to keep track 
+whether we encounter a dot. Once we see a dot, each identifier is then defined as a field 
+selection token and then the flag gets reset. Also, the same truncation rules apply just 
+like the token.
+
+For the tabs, we knew that each tab is equivalent to 8 single spaces. Thus whenever,
+we encounter a tab token, then the current column number is incremented by 8. However,
+we had to use a specific formula to get the correct column number. Also, we had to 
+modify the current column number specifically for this code. 
+
+For string truncation, we followed the rules specified in the project description, which
+is to truncate when a string is longer than 1023 characters, greater than 31 characters,
+and less than 31 characters. For more than 1023 characters, we had to report an error 
+using ReportError and also truncate the string to print out the first 31 characters using
+the strcpy. For strings greater than 31 characters, we truncated using strcpy to 31 chars
+without reporting an error. For strings less than or equal to 31 characters, we just
+saved that value into the yylval and returned normally.
