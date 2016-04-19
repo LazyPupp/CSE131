@@ -45,71 +45,59 @@ void yyerror(const char *msg); // standard error-handling routine
     float floatConstant;
     char identifier[MaxIdentLen+1]; // +1 for terminating null
     Decl *decl;
-    List<Decl*> *declList;
+    List<Decl*> *decllist;
     char *charConstant;
-
     double doubleConstant;
-    Type *type;
-    LValue *lval;
-    Default *def;
-    Case *casee;
+   
+
+    List<Stmt*> *stmtlist;
+    List<SwitchStmt*> *switchstmtlist;
+
     Node *node;
     Identifier *ident;
-    Error *err;
-
-    List<Devl*> *declList;
-    List<NamedType*> *namedTList;
-    List<VarDecl*> *varDecl;
-    List<Stmt*> *statements;
-    List<Case*> *caseStatements;
-    List<Expr*> *exprList;
-
-    IntConstant *intConstant;
-    FloatConstant *floatConstant;
-    BoolConstant *boolConstant;
-    Operator *oper;
-    CompoundExpr *compExpr;
+    Error *error;
     VarDecl *vardecl;
-    VarDeclError *varDeclErr;
-    FnDecl *fnDecl;
-    FormalsError *formalsErr;
-    Expr *expr;
-    ExprError *exprErr;
-    EmptyExpr *empExpr;
-    VarExpr *varExpr;
-
-    EqualityExpr *equalExpr;
-    LogicalExpr *logExpr;
-    AssignExpr *assignExpr;
-    PostfixExpr *postFixExpr;
-    ArithmeticExpr *arithExpr;
-    RelationalExpr *relationExpr;
-
-    ArrayAccess *arrayAcc;
-    FieldAccess *fieldAcc;
+    VarDeclError *vardeclerror;
+    FnDecl *fndecl;
+    FormalsError *formalserror;
+    Expr *expression;
+    ExprError *exprerror;
+    EmptyExpr *emptyexpr;
+    VarExpr *varexpr;
+    IntConstant *intconstant;
+    FloatConstant *floatconstant;
+    BoolConstant *boolconstant;
+    Operator *operato;
+    CompoundExpr *compoundexpr;
+    ArithmeticExpr *arithmeticexpr;
+    RelationalExpr *relationalexpr;
+    EqualityExpr *equalityexpr;
+    LogicalExpr *logicalexpr;
+    AssignExpr *assignexpr;
+    PostfixExpr *postfixexpr;
+    LValue *lvalue;
+    ArrayAccess *arrayaccess;
+    FieldAccess *fieldaccess;
     Call *call;
-    ActualsError *actualsErr;
-    Stmt *statement;
-    StmtBlock *stmtBlock;
-    ConditionalStmt *conditionalStmt;
-    LoopStmt *loopStmt;
-    ForStmt *forStmt;
-    WhileStmt *whileStmt;
+    ActualsError *actualserror;
+    Stmt *stmt;
+    StmtBlock *stmtblock;
+    ConditionalStmt *conditionalstmt;
+    LoopStmt *loopstmt;
+    ForStmt *forstmt;
+    WhileStmt *whilestmt;
     IfStmt *ifstmt;
     IfStmtExprError *ifstmtexprerror;
-    BreakStmt *breakStmt;
-    ReturnStmt *returnStmt;
+    BreakStmt *breakstmt;
+    ReturnStmt *returnstmt;
     SwitchLabel *switchlabel;
-
+    Case *cas;
+    Default *defaul;
     SwitchStmt *switchstmt;
     SwitchStmtError *switchstmterror;
-
-    InterfaceDecl *interDecl;
+    Type *type;
     NamedType *namedtype;
     ArrayType *arraytype;
-    ClassDecl *classDecl;
-    PrintStmt *printStatement;
-
 
 }
 
@@ -151,45 +139,70 @@ void yyerror(const char *msg); // standard error-handling routine
  * of the union named "declList" which is of type List<Decl*>.
  * pp2: You'll need to add many of these of your own.
  */
+ /*
 %type <declList>  DeclList
 %type <decl>      Decl
+*/
 
-%type <printStmt>  PrintStmt
-%type <exprList>   ExprList
-%type <expr>       Expr
-%type <lval>     LValue
-%type <exprList>   Actuals
-%type <forStmt>    ForStmt
-%type <returnStmt> ReturnStmt
-%type <breakStmt>  BreakStmt
-%type <switchStmt> SwitchStmt
-%type <decl>       Field
-%type <nTList>     ImplementsDecl
-%type <nTList>     ImplementsList
-%type <classDecl>  ClassDecl
-%type <decl>       Prototype
-%type <type>       Type
-%type <caseStmt>   CaseStatement
-%type <defStmt>    DefaultStatement
-%type <statements> OptStmtList
-%type <vardecls>   VarDeclList
-%type <stmtBlock>  StmtBlock
-%type <statements> StmtList
-%type <stmt>       Stmt
-%type <varDecl>    VariableDecl
-%type <varDecl>    Variable
-%type <fnDecl>     FunctionDecl
-%type <formals>    OptFormals
-%type <formals>    Formals
-%type <identObj>   Identifier
-%type <declList>   FieldList
-%type <declList>   PrototypeList
-%type <ifaceDecl>  InterfaceDecl
-%type <caseStmts>  CaseStatements
-%type <exprList>   OptActuals
-%type <call>       Call
-%type <ifStmt>     IfStmt
-%type <whileStmt>  WhileStmt
+%type <expression>          variable_identifier
+%type <expression>          primary_expression
+%type <expression>          postfix_expression 
+ //%type <expression>          integer_expression
+ //%type <expression>          function_identifier
+%type <expression>          unary_expression
+%type <operato>             unary_operator
+%type <expression>          multiplicative_expression
+%type <expression>          additive_expression
+%type <expression>          shift_expression
+%type <expression>          relational_expression
+%type <expression>          equality_expression
+%type <expression>          and_expression
+%type <expression>          exclusive_or_expression
+%type <expression>          inclusive_or_expression
+%type <expression>          logical_and_expression
+%type <expression>          logical_xor_expression
+%type <expression>          logical_or_expression
+%type <expression>          conditional_expression
+%type <expression>          assignment_expression
+%type <operato>             assignment_operator
+%type <expression>          expression
+%type <decl>                declaration
+%type <decl>                function_prototype
+%type <decl>                function_declarator
+%type <decl>                function_header_with_parameters
+%type <decl>                function_header
+%type <decl>                parameter_declarator
+%type <decl>                parameter_declaration
+%type <type>                parameter_type_specifier
+%type <decl>                init_declarator_list
+%type <decl>                single_declaration
+%type <type>                fully_specified_type
+%type <type>                type_specifier
+%type <type>                type_specifier_nonarray
+%type <expression>          initializer
+%type <stmt>                declaration_statement
+%type <stmt>                statement
+%type <stmt>                statement_no_new_scope
+%type <stmt>                statement_with_scope
+%type <stmt>                simple_statement
+%type <stmt>            compound_statement_with_scope
+%type <stmt>            compound_statement_no_new_scope
+%type <stmtlist>            statement_list
+%type <stmt>          expression_statement
+%type <stmt>          selection_statement
+%type <stmtlist>          selection_rest_statement
+%type <stmt>                condition
+%type <stmt>                switch_statement
+%type <stmtlist>            switch_statement_list
+%type <stmt>                case_label
+%type <stmt>                iteration_statement
+%type <stmt>                for_init_statement
+%type <stmt>                conditionopt
+%type <stmtlist>                for_rest_statement
+%type <decllist>            translation_unit
+%type <decl>                external_declaration
+%type <decl>                function_definition
+
 
 
 %%
@@ -199,216 +212,365 @@ void yyerror(const char *msg); // standard error-handling routine
  * %% markers which delimit the Rules section.
 
  */
-Program   :    DeclList            {
-                                      @1;
-                                      /* pp2: The @1 is needed to convince
-                                       * yacc to set up yylloc. You can remove
-                                       * it once you have other uses of @n*/
-                                      Program *program = new Program($1);
-                                      // if no errors, advance to next phase
-                                      if (ReportError::NumErrors() == 0)
-                                          program->Print(0);
-                                    }
-          ;
 
-DeclList  :    DeclList Decl        { ($$=$1)->Append($2); }
-          |    Decl                 { ($$ = new List<Decl*>)->Append($1); }
-          ;
 
-Decl      :     VariableDecl   { $$ = $1 }
-          |     FunctionDecl   { $$ = $1 }
-          |     ClassDecl      { $$ = $1 }
-          |     InterfaceDecl  { $$ = $1 }
-          ;
 
-VariableDecl      : Variable ';'            { $$ = $1; }
-                  | Variable '=' Expr ';'   { ReportError::Formatted(&@$, "Cannot assign a value to a variable in declaration. Assignment ignored.\n"); $$ = $1; }
-                  ;
 
-Variable          : Type Identifier         { $$ = new VarDecl($2, $1); }
-                  ;
+Program     
+  :   translation_unit  { @1;
+                                Program *program = new Program($1);
+                                if (ReportError::NumErrors() == 0) 
+                                  program->Print(0);
 
-Type              : T_Int                   { $$ = Type::intType; }
-                  | T_Float                { $$ = Type::doubleType; }
-                  | T_Bool                  { $$ = Type::boolType; }
-                  | T_String                { $$ = Type::stringType; }
-                  | Identifier              { $$ = new NamedType($1); }
-                  | Type T_Dims             { $$ = new ArrayType(@1, $1); }
-                  ;
+                                }
+  ;
 
-Identifier        : T_Identifier            { $$ = new Identifier(@1, $1); }
-                  ;
 
-FunctionDecl      : Type Identifier '(' OptFormals ')' StmtBlock     { $$ = new FnDecl($2, $1, $4); $$->SetFunctionBody($6); }
-                  | T_Void Identifier '(' OptFormals ')' StmtBlock   { $$ = new FnDecl($2, Type::voidType, $4); $$->SetFunctionBody($6); }
-                  ;
+variable_identifier  
+  :   T_Identifier { $$ = new VarExpr(yylloc, new Identifier(yylloc, $1)); }
+  ;
 
-OptFormals        : Formals                 { $$ = $1; }
-                  |                         { $$ = new List<VarDecl *>; }
-                  ;
+primary_expression
+  :   variable_identifier { $$ = $1; }
+  |   T_IntConstant { $$ = new IntConstant(yylloc, $1); }
+  |   T_FloatConstant { $$ = new FloatConstant(yylloc, $1); }
+  |   T_BoolConstant { $$ = new BoolConstant(yylloc, $1); }
+  |   '(' expression ')' { $$ = $2; }
+  ;
 
-Formals           : Variable                { ($$ = new List<VarDecl *>)->Append($1); }
-                  | Formals ',' Variable    { ($$ = $1)->Append($3); }
-                  ; 
+postfix_expression
+  :   primary_expression { $$ = $1; }
+  |   T_Identifier '.' T_Identifier { $$ = new FieldAccess(
+        new VarExpr(yylloc, new Identifier(yylloc, $1)),
+        new Identifier(yylloc, $3)); }
+  |   postfix_expression T_Inc { $$ = new PostfixExpr($1, 
+          new Operator(yylloc, "++")); }
+  |   postfix_expression T_Dec { $$ = new PostfixExpr($1, 
+          new Operator(yylloc, "--")); }
+  ;   
 
-ClassDecl         : T_Class Identifier ImplementsDecl '{' FieldList '}'
-                    { $$ = new ClassDecl($2, NULL, $3, $5); }
-                  | T_Class Identifier T_Extends Identifier ImplementsDecl '{' FieldList '}'
-                    { $$ = new ClassDecl($2, new NamedType($4), $5, $7); }
-                  ;
 
-ImplementsDecl    : T_Implements ImplementsList       { $$ = $2; }
-                  |                                   { $$ = new List<NamedType *>; }
-                  ;
-                  
-ImplementsList    : Identifier                        { ($$ = new List<NamedType *>)->Append(new NamedType($1)); }
-                  | ImplementsList ',' Identifier     { ($$ = $1)->Append(new NamedType($3)); }
-                  ;
-                  
-FieldList         : FieldList Field       { ($$=$1)->Append($2); }
-                  |                       { $$ = new List<Decl*>; }
-                  ;
+unary_expression
+  :   postfix_expression { $$ = $1; }
+  |   T_Inc unary_expression { $$ = new ArithmeticExpr(
+            new Operator(yylloc, "++"), $2); }
+  |   T_Dec unary_expression { $$ = new ArithmeticExpr(
+            new Operator(yylloc, "--"), $2);}
+  |   unary_operator unary_expression { $$ = new ArithmeticExpr(
+            $1, $2);}
+  ;
 
-Field             : VariableDecl          { $$ = $1; }
-                  | FunctionDecl          { $$ = $1; }
-                  ;
+unary_operator
+  :   '+' { $$ = new Operator(yylloc, "+"); }
+  |   '-' { $$ = new Operator(yylloc, "-"); }
+  ;
 
-InterfaceDecl     : T_Interface Identifier '{' PrototypeList '}'      { $$ = new InterfaceDecl($2, $4); }
-                  ;
+multiplicative_expression
+  :   unary_expression { $$ = $1; }
+  |   multiplicative_expression '*' unary_expression {
+        $$ = new ArithmeticExpr($1, new Operator(yylloc, "*"), $3); }
+  |   multiplicative_expression '/' unary_expression {
+        $$ = new ArithmeticExpr($1, new Operator(yylloc, "/"), $3);
+  }
+  ;
 
-PrototypeList     : PrototypeList Prototype    { ($$=$1)->Append($2); }
-                  |                            { $$ = new List<Decl*>; }
-                  ;
+additive_expression
+  :   multiplicative_expression { $$ = $1; }
+  |   additive_expression '+' multiplicative_expression { 
+        $$ = new ArithmeticExpr($1, new Operator(yylloc, "+"), $3); }
+  |   additive_expression '-' multiplicative_expression {
+        $$ = new ArithmeticExpr($1, new Operator(yylloc, "-"), $3); }
+  ;
 
-Prototype         : Type Identifier '(' OptFormals ')' ';'   { $$ = new FnDecl($2, $1, $4); }
-                  | T_Void Identifier '(' OptFormals ')' ';' { $$ = new FnDecl($2, Type::voidType, $4); }
-                  ;
+shift_expression
+  :   additive_expression { $$ = $1; }
+  ;
 
-StmtBlock         : '{' VarDeclList StmtList '}'   { $$ = new StmtBlock($2, $3); }
-                  | '{' StmtList '}'               { $$ = new StmtBlock(new List<VarDecl*>, $2); }
-                  | '{' VarDeclList '}'            { $$ = new StmtBlock($2, new List<Stmt*>); }
-                  | '{' '}'                        { $$ = new StmtBlock(new List<VarDecl*>, new List<Stmt*>); }
-                  | '{' error '}'  { ReportError::Formatted(&@$, "Can't parse statement block correctly. Attempting to skip."); $$ = new StmtBlock(new List<VarDecl*>, new List<Stmt*>); }
-                  ;
+relational_expression
+  :   shift_expression { $$ = $1; }
+  |   relational_expression '<' shift_expression {
+        $$ = new RelationalExpr($1, new Operator(yylloc, "<"), $3); }
+  |   relational_expression '>' shift_expression {
+        $$ = new RelationalExpr($1, new Operator(yylloc, ">"), $3); }
+  |   relational_expression T_LessEqual shift_expression {
+        $$ = new RelationalExpr($1, new Operator(yylloc, "<="), $3); }
+  |   relational_expression T_GreaterEqual shift_expression {
+        $$ = new RelationalExpr($1, new Operator(yylloc, ">="), $3); }
+  ;
 
-VarDeclList       : VarDeclList VariableDecl    { ($$ = $1)->Append($2); }
-                  | VariableDecl                { ($$ = new List<VarDecl*>)->Append($1); }
-                  ;
+equality_expression
+  :   relational_expression { $$ = $1; }
+  |   equality_expression T_EQ relational_expression {
+        $$ = new EqualityExpr( $1, new Operator(yylloc, "=="), $3); }
+  |   equality_expression T_NE relational_expression {
+        $$ = new EqualityExpr($1, new Operator(yylloc, "!="), $3); }
+  ;
 
-StmtList          : StmtList Stmt               { ($$ = $1)->Append($2); }
-                  | Stmt                        { ($$ = new List<Stmt*>)->Append($1); }
-                  ;
+and_expression
+  :   equality_expression { $$ = $1; }
+  ;
 
-Stmt              : PrintStmt                     { $$ = $1; }
-                  | ';'                           { $$ = new EmptyExpr(); }
-                  | Expr ';'                      { $$ = $1; }
-                  | IfStmt                        { $$ = $1; }
-                  | WhileStmt                     { $$ = $1; }
-                  | ForStmt                       { $$ = $1; }
-                  | BreakStmt                     { $$ = $1; }
-                  | ReturnStmt                    { $$ = $1; }
-                  | SwitchStmt                    { $$ = $1; }
-                  | StmtBlock                     { $$ = $1; }
-                  | error ';'                     { ReportError::Formatted(&@$, "Cannot parse statement. Skipping statement."); $$ = new EmptyExpr(); }
-                  ;
-                  
-SwitchStmt        : T_Switch '(' Expr ')' '{' CaseStatements DefaultStatement '}'  { $$ = new SwitchStmt($3, $6, $7); }
-                  | T_Switch '(' Expr ')' '{' DefaultStatement '}' {  ReportError::Formatted(&@$, "Need at least one case statement. Skipping entire switch statement block."); $$ = new SwitchStmt($3, new List<Case *>, NULL); }
-                  | T_Switch '(' Expr ')' '{' error '}' { ReportError::Formatted(&@$, "Cannot parse switch statement block. Skipping entire switch statement block."); $$ = new SwitchStmt($3, new List<Case *>, NULL); }
-                  ;
+exclusive_or_expression
+  :   and_expression { $$ = $1; }
+  ;
 
-CaseStatements    : CaseStatements CaseStatement            { ($$ = $1)->Append($2); }
-                  | CaseStatement                           { ($$ = new List<Case*>)->Append($1); }
-                  ;
+inclusive_or_expression
+  :   exclusive_or_expression { $$ = $1; }
+  ;
 
-CaseStatement     : T_Case Expr ':' OptStmtList             { $$ = new Case($2, $4); }
-                  ;
+logical_and_expression
+  :   inclusive_or_expression { $$ = $1; }
+  |   logical_and_expression T_And inclusive_or_expression {
+        $$ = new LogicalExpr($1, new Operator(yylloc, "&&"), $3); }
+  ;
 
-DefaultStatement  : T_Default ':' OptStmtList               { $$ = new Default($3); }
-                  |                                         { $$ = NULL; }
-                  ;
+logical_xor_expression
+  :   logical_and_expression { $$ = $1; }
+  ;
 
-OptStmtList       : StmtList                                { $$ = $1; }
-                  |                                         { $$ = new List<Stmt*>; }
-                  ;
+logical_or_expression
+  :   logical_xor_expression { $$ = $1; }
+  |   logical_or_expression T_Or logical_xor_expression {
+        $$ = new LogicalExpr($1, new Operator(yylloc, "||"), $3); }
+  ;
 
-IfStmt            : T_If '(' Expr ')' Stmt T_Else Stmt       { $$ = new IfStmt($3, $5, $7); }
-                  | T_If '(' Expr ')' Stmt %prec T_NoElse    { $$ = new IfStmt($3, $5, NULL); }
-                  ;
+conditional_expression
+  :   logical_or_expression { $$ = $1; }
+  ;
 
-WhileStmt         : T_While '(' Expr ')' Stmt     { $$ = new WhileStmt($3, $5); }
-                  ;
+assignment_expression
+  :   conditional_expression { $$ = $1; }
+  |   unary_expression assignment_operator assignment_expression {
+        $$ = new AssignExpr($1, $2, $3); }
+  ;
 
-PrintStmt         : T_Print '(' ExprList ')' ';'  { $$ = new PrintStmt($3); }
-                  ;
+assignment_operator
+  :   '=' { $$ = new Operator(yylloc, "="); }
+  |   T_MulAssign { $$ = new Operator(yylloc, "*="); }
+  |   T_DivAssign { $$ = new Operator(yylloc, "/="); }
+  |   T_AddAssign { $$ = new Operator(yylloc, "+="); }
+  |   T_SubAssign { $$ = new Operator(yylloc, "-="); }
+  ;
 
-ForStmt           : T_For '(' ';' Expr ';' ')' Stmt               { $$ = new ForStmt(new EmptyExpr(), $4, new EmptyExpr(), $7); }
-                  | T_For '(' Expr ';' Expr ';' ')' Stmt          { $$ = new ForStmt($3, $5, new EmptyExpr(), $8); }
-                  | T_For '(' ';' Expr ';' Expr ')' Stmt          { $$ = new ForStmt(new EmptyExpr(), $4, $6, $8); }
-                  | T_For '(' Expr ';' Expr ';' Expr ')' Stmt     { $$ = new ForStmt($3, $5, $7, $9); }
-                  ;
+expression
+  :   assignment_expression { $$ = $1; }
+  ;
 
-ReturnStmt        : T_Return ';'      { $$ = new ReturnStmt(@$, new EmptyExpr()); }
-                  | T_Return Expr ';' { $$ = new ReturnStmt(@2, $2); }
-                  ;
 
-BreakStmt         : T_Break ';' { $$ = new BreakStmt(@1); }
-                  ;
+declaration
+  :   function_prototype ';' { $$ = $1; }
+  |   init_declarator_list ';' { $$ = $1; }
+  ;
 
-ExprList          : ExprList ',' Expr             { ($$ = $1)->Append($3); }
-                  | Expr                          { ($$ = new List<Expr*>)->Append($1); }
-                  ;
+function_prototype
+  :   function_declarator ')' { $$ = $1; }
+  ;
 
-Expr              : LValue '=' Expr               { $$ = new AssignExpr($1, new Operator(@2, "="), $3);  }
-                  | LValue                        { $$ = $1; }
-                  
-                  /* Constants here */
-                  | T_StringConstant              { $$ = new StringConstant(@1, $1); }
-                  | T_IntConstant                 { $$ = new IntConstant(@1, $1); }
-                  | T_BoolConstant                { $$ = new BoolConstant(@1, $1); }
-                  
-                  | T_This                        { $$ = new This(@1); }
-                  | Call                          { $$ = $1; }
-                  | '(' Expr ')'                  { $$ = $2; }
-                  | Expr '+' Expr                 { $$ = new ArithmeticExpr($1, new Operator(@2, "+"), $3); }
-                  | Expr '-' Expr                 { $$ = new ArithmeticExpr($1, new Operator(@2, "-"), $3); }
-                  | Expr '*' Expr                 { $$ = new ArithmeticExpr($1, new Operator(@2, "*"), $3); }
-                  | Expr '/' Expr                 { $$ = new ArithmeticExpr($1, new Operator(@2, "/"), $3); }
-                  | Expr '%' Expr                 { $$ = new ArithmeticExpr($1, new Operator(@2, "%"), $3); }
-                  | '-' Expr %prec T_UnaryMinus   { $$ = new ArithmeticExpr(new Operator(@1, "-"), $2); }
-                  | Expr '<' Expr                 { $$ = new RelationalExpr($1, new Operator(@2, "<"), $3); }
-                  | Expr T_LessEqual Expr         { $$ = new RelationalExpr($1, new Operator(@2, "<="), $3); }
-                  | Expr '>' Expr                 { $$ = new RelationalExpr($1, new Operator(@2, ">"), $3); }
-                  | Expr T_GreaterEqual Expr      { $$ = new RelationalExpr($1, new Operator(@2, ">="), $3); }
-                  | Expr T_Equal Expr             { $$ = new EqualityExpr($1, new Operator(@2, "=="), $3); }
-                  | Expr T_NE Expr          { $$ = new EqualityExpr($1, new Operator(@2, "!="), $3); }
-                  | Expr T_And Expr               { $$ = new LogicalExpr($1, new Operator(@2, "&&"), $3); }
-                  | Expr T_Or Expr                { $$ = new LogicalExpr($1, new Operator(@2, "||"), $3); }
-                  | '!' Expr                      { $$ = new LogicalExpr(new Operator(@1, "!"), $2); }
-                  | LValue T_Inc                 { $$ = new PostfixExpr($1, new Operator(@2, "++")); }
-                  | LValue T_Dec                 { $$ = new PostfixExpr($1, new Operator(@2, "--")); }
-                  | T_ReadInteger '(' ')'         { $$ = new ReadIntegerExpr(@$); }
-                  | T_ReadLine '(' ')'            { $$ = new ReadLineExpr(@$); }
-                  | T_New Identifier              { $$ = new NewExpr(@$, new NamedType($2)); }
-                  | T_NewArray '(' Expr ',' Type ')'  { $$ = new NewArrayExpr(@$, $3, $5); }
-                  ;
+function_declarator
+  :   function_header { $$ = $1; }
+  |   function_header_with_parameters { $$ = $1; }
+  ;
+ 
+ /*
+function_header_with_parameters
+  :   function_header parameter_declaration { $$ = $1;
+        ((FnDecl*)($$))->formals->Append((VarDecl*)$2); }
+  |   function_header_with_parameters ',' parameter_declaration {
+        $$ = $1;
+        ((FnDecl*)($$))->formals->Append((VarDecl*)$3); }
+  ;
+ */
 
-Call              : Identifier '(' OptActuals ')'            { $$ = new Call(@$, NULL, $1, $3); }
-                  | Expr '.' Identifier '(' OptActuals ')'   { $$ = new Call(@$, $1, $3, $5); }
-                  ;
+function_header_with_parameters
+  :   function_header parameter_declaration { $$ = $1;}
+  |   function_header_with_parameters ',' parameter_declaration { $$ = $1;}
+  ;
 
-OptActuals        : Actuals                       { $$ = $1; }
-                  |                               { $$ = new List<Expr*>; }
-                  ;
 
-Actuals           : Expr                          { ($$ = new List<Expr*>)->Append($1); }
-                  | Actuals ',' Expr              { ($$ = $1)->Append($3); }
-                  ;
+function_header
+  :   fully_specified_type T_Identifier '(' { $$ = new FnDecl(
+        new Identifier(yylloc, $2), $1, new List<VarDecl*>); }
+  ;
 
-LValue            : Identifier                    { $$ = new FieldAccess(NULL, $1); }
-                  | Expr '.' Identifier           { $$ = new FieldAccess($1, $3); }
-                  | Expr '[' Expr ']'             { $$ = new ArrayAccess(@$, $1, $3); }
+parameter_declarator
+  :   type_specifier T_Identifier { $$ = new VarDecl(
+          new Identifier(yylloc, $2), $1); }
+  ;
 
+parameter_declaration
+  :   parameter_declarator { $$ = $1; } 
+  |   parameter_type_specifier { $$ = (Decl*)$1; }
+  ;
+
+parameter_type_specifier
+  :   type_specifier { $$ = $1; }
+  ;
+
+init_declarator_list
+  :   single_declaration { $$ = $1; }
+  ;
+
+single_declaration
+  :   fully_specified_type T_Identifier { $$ = new VarDecl(  new Identifier(yylloc, $2), $1); }
+  ;
+
+fully_specified_type
+  :   type_specifier { $$ = $1; }
+  ;
+
+type_specifier
+  :   type_specifier_nonarray { $$ = $1; }
+  ;
+
+type_specifier_nonarray
+  :   T_Void { $$ = Type::voidType; }
+  |   T_Float { $$ = Type::floatType; }
+  |   T_Int { $$ = Type::intType; }
+  |   T_Bool { $$ = Type::boolType; }
+  |   T_Vec2 { $$ = Type::vec2Type; }
+  |   T_Vec3 { $$ = Type::vec3Type; }
+  |   T_Vec4 { $$ = Type::vec4Type; }
+  |   T_Mat2 { $$ = Type::mat2Type; }
+  |   T_Mat3 { $$ = Type::mat3Type; }
+  |   T_Mat4 { $$ = Type::mat4Type; }
+  ; 
+
+initializer
+  :   assignment_expression { $$ = $1; }
+  ;
+
+declaration_statement
+  :   declaration { $$ = (Stmt*)$1; }
+  ;
+
+statement
+  :   compound_statement_with_scope { $$ = $1; }
+  |   simple_statement { $$ = $1; }
+  ;
+
+
+statement_no_new_scope
+  :   compound_statement_no_new_scope { $$ = $1; }
+  |   simple_statement { $$ = $1; }
+  ;
+
+statement_with_scope
+  :   compound_statement_no_new_scope { $$ = $1; }
+  |   simple_statement { $$ = $1; }
+  ;
+
+simple_statement
+  :   declaration_statement { $$ = $1; }
+  |   expression_statement { $$ = $1; }
+  |   selection_statement { $$ = $1; }
+  |   switch_statement { $$ = $1; }
+  |   case_label { $$ = $1; }
+  |   iteration_statement { $$ = $1; }
+  ;
+
+compound_statement_with_scope
+  :   '{' '}' { $$ = new StmtBlock(
+        new List<VarDecl*>, new List<Stmt*>); }
+  |   '{' statement_list '}' { $$ = new StmtBlock(
+        new List<VarDecl*>, $2); }
+  ;
+
+compound_statement_no_new_scope
+  :   '{' '}' { $$ = new StmtBlock(
+        new List<VarDecl*>, new List<Stmt*>); }
+  |   '{' statement_list '}' { $$ = new StmtBlock(
+        new List<VarDecl*>, $2); }
+  ;
+
+statement_list
+  :   statement { $$ = new List<Stmt*>; $$->Append($1); }
+  |   statement_list statement { $$ = $1; $$->Append($2); }
+  ;
+
+expression_statement
+  :   ';' { $$ = new StmtBlock(
+        new List<VarDecl*>, new List<Stmt*>); }
+  |   expression ';' { $$ = $1; }
+  ;
+
+selection_statement
+  :   T_If '(' expression ')' selection_rest_statement {
+        $$ = new IfStmt($3, $5->Nth(0),
+        (($5->NumElements()) > 1) ? ($5->Nth(1)) : NULL);
+      }
+  ; 
+
+selection_rest_statement
+  :   statement_with_scope T_Else statement_with_scope {
+        $$ = new List<Stmt*>;
+        $$->Append($1); $$->Append($3); }
+  |   statement_with_scope %prec NoElseToken { $$ = new List<Stmt*>;
+        $$->Append($1); }
+  ;
+
+condition
+  :   expression { $$ = $1; }
+  |   fully_specified_type T_Identifier '=' initializer {
+        $$ = new VarExpr(yylloc, new Identifier(yylloc, $2)); }
+  ;
+
+switch_statement
+  :   T_Switch '(' expression ')' '{' switch_statement_list '}' {
+        $$ = new SwitchStmt($3, (List<Case*>*)$6, NULL); }
+  ;
+
+switch_statement_list
+  :   statement_list { $$ = $1; }
+  ;
+
+case_label
+  :   T_Case expression ':' statement { List<Stmt*> *a = new List<Stmt*>;
+        a->Append((Stmt*)$4); $$ = new Case((IntConstant*)$2, a); }
+  |   T_Default ':' statement { List<Stmt*> *a = new List<Stmt*>;
+        a->Append((Stmt*)$3); $$ = new Default(a); }
+  ;
+
+iteration_statement
+  :   T_While '(' condition ')' statement_no_new_scope {
+        $$ = new WhileStmt((Expr*)$3, $5); }
+  |   T_For '(' for_init_statement for_rest_statement ')' statement_no_new_scope {
+        Expr* a; Expr *b = NULL; a = (Expr*)($4->Nth(0));
+        if($4->NumElements() == 2) b = (Expr*)($4->Nth(1));  
+        $$ = new ForStmt((Expr*)$3, a, b, $6);}
+  ;
+
+for_init_statement
+  :   expression_statement { $$ = $1; }
+  |   declaration_statement { $$ = $1; }
+  ;
+
+conditionopt
+  :   condition { $$ = $1; }
+  ;
+
+for_rest_statement
+  :   conditionopt ';' { $$ = new List<Stmt*>; $$->Append($1); }
+  |   conditionopt ';' expression { $$ = new List<Stmt*>;
+        $$->Append($1); $$->Append($3); }
+  ;
+
+translation_unit
+  :   external_declaration { $$ = new List<Decl*>();
+        $$->Append($1); }
+  |   translation_unit external_declaration { $$ = $1;
+        $$->Append($2); }
+  ;
+
+external_declaration
+  :   function_definition { $$ = $1; }
+  |   declaration { $$ = $1; }
+  ;
+
+function_definition
+  :   function_prototype compound_statement_no_new_scope {
+        $$ = $1; ((FnDecl*)$$)->SetFunctionBody($2);
+      }
+  ;
 
 %%
 
