@@ -235,12 +235,12 @@ primary_expression
   |   T_IntConstant { $$ = new IntConstant(yylloc, $1); }
   |   T_FloatConstant { $$ = new FloatConstant(yylloc, $1); }
   |   T_BoolConstant { $$ = new BoolConstant(yylloc, $1); }
-  |   '(' expression ')' { $$ = $2; }
+  |   T_LeftParen expression T_RightParen { $$ = $2; }
   ;
 
 postfix_expression
   :   primary_expression { $$ = $1; }
-  |   T_Identifier '.' T_Identifier { $$ = new FieldAccess(
+  |   T_Identifier T_Dot T_Identifier { $$ = new FieldAccess(
         new VarExpr(yylloc, new Identifier(yylloc, $1)),
         new Identifier(yylloc, $3)); }
   |   postfix_expression T_Inc { $$ = new PostfixExpr($1, 
@@ -261,24 +261,24 @@ unary_expression
   ;
 
 unary_operator
-  :   '+' { $$ = new Operator(yylloc, "+"); }
-  |   '-' { $$ = new Operator(yylloc, "-"); }
+  :   T_Plus { $$ = new Operator(yylloc, "+"); }
+  |   T_Dash { $$ = new Operator(yylloc, "-"); }
   ;
 
 multiplicative_expression
   :   unary_expression { $$ = $1; }
-  |   multiplicative_expression '*' unary_expression {
+  |   multiplicative_expression T_Star unary_expression {
         $$ = new ArithmeticExpr($1, new Operator(yylloc, "*"), $3); }
-  |   multiplicative_expression '/' unary_expression {
+  |   multiplicative_expression T_Slash unary_expression {
         $$ = new ArithmeticExpr($1, new Operator(yylloc, "/"), $3);
   }
   ;
 
 additive_expression
   :   multiplicative_expression { $$ = $1; }
-  |   additive_expression '+' multiplicative_expression { 
+  |   additive_expression T_Plus multiplicative_expression { 
         $$ = new ArithmeticExpr($1, new Operator(yylloc, "+"), $3); }
-  |   additive_expression '-' multiplicative_expression {
+  |   additive_expression T_Dash multiplicative_expression {
         $$ = new ArithmeticExpr($1, new Operator(yylloc, "-"), $3); }
   ;
 
@@ -288,9 +288,9 @@ shift_expression
 
 relational_expression
   :   shift_expression { $$ = $1; }
-  |   relational_expression '<' shift_expression {
+  |   relational_expression T_LeftAngle shift_expression {
         $$ = new RelationalExpr($1, new Operator(yylloc, "<"), $3); }
-  |   relational_expression '>' shift_expression {
+  |   relational_expression T_RightAngle shift_expression {
         $$ = new RelationalExpr($1, new Operator(yylloc, ">"), $3); }
   |   relational_expression T_LessEqual shift_expression {
         $$ = new RelationalExpr($1, new Operator(yylloc, "<="), $3); }
@@ -345,7 +345,7 @@ assignment_expression
   ;
 
 assignment_operator
-  :   '=' { $$ = new Operator(yylloc, "="); }
+  :   T_Equal { $$ = new Operator(yylloc, "="); }
   |   T_MulAssign { $$ = new Operator(yylloc, "*="); }
   |   T_DivAssign { $$ = new Operator(yylloc, "/="); }
   |   T_AddAssign { $$ = new Operator(yylloc, "+="); }
@@ -358,12 +358,12 @@ expression
 
 
 declaration
-  :   function_prototype ';' { $$ = $1; }
-  |   init_declarator_list ';' { $$ = $1; }
+  :   function_prototype T_Semicolon { $$ = $1; }
+  |   init_declarator_list T_Semicolon { $$ = $1; }
   ;
 
 function_prototype
-  :   function_declarator ')' { $$ = $1; }
+  :   function_declarator T_RightParen { $$ = $1; }
   ;
 
 function_declarator
@@ -388,7 +388,7 @@ function_header_with_parameters
 
 
 function_header
-  :   fully_specified_type T_Identifier '(' { $$ = new FnDecl(
+  :   fully_specified_type T_Identifier T_LeftParen { $$ = new FnDecl(
         new Identifier(yylloc, $2), $1, new List<VarDecl*>); }
   ;
 
@@ -425,7 +425,7 @@ type_specifier
 type_specifier_nonarray
   :   T_Void { $$ = Type::voidType; }
   |   T_Float { $$ = Type::floatType; }
-  |   T_Int { $$ = Type::intType; }
+  |   T_Int  { $$ = Type::intType; }
   |   T_Bool { $$ = Type::boolType; }
   |   T_Vec2 { $$ = Type::vec2Type; }
   |   T_Vec3 { $$ = Type::vec3Type; }
@@ -469,16 +469,16 @@ simple_statement
   ;
 
 compound_statement_with_scope
-  :   '{' '}' { $$ = new StmtBlock(
+  :   T_LeftBrace T_RightBrace { $$ = new StmtBlock(
         new List<VarDecl*>, new List<Stmt*>); }
-  |   '{' statement_list '}' { $$ = new StmtBlock(
+  |   T_LeftBrace statement_list T_RightBrace { $$ = new StmtBlock(
         new List<VarDecl*>, $2); }
   ;
 
 compound_statement_no_new_scope
-  :   '{' '}' { $$ = new StmtBlock(
+  :   T_LeftBrace T_RightBrace { $$ = new StmtBlock(
         new List<VarDecl*>, new List<Stmt*>); }
-  |   '{' statement_list '}' { $$ = new StmtBlock(
+  |   T_LeftBrace statement_list T_RightBrace { $$ = new StmtBlock(
         new List<VarDecl*>, $2); }
   ;
 
@@ -488,13 +488,13 @@ statement_list
   ;
 
 expression_statement
-  :   ';' { $$ = new StmtBlock(
+  :   T_Semicolon { $$ = new StmtBlock(
         new List<VarDecl*>, new List<Stmt*>); }
-  |   expression ';' { $$ = $1; }
+  |   expression T_Semicolon { $$ = $1; }
   ;
 
 selection_statement
-  :   T_If '(' expression ')' selection_rest_statement {
+  :   T_If T_LeftParen expression T_RightParen selection_rest_statement {
         $$ = new IfStmt($3, $5->Nth(0),
         (($5->NumElements()) > 1) ? ($5->Nth(1)) : NULL);
       }
@@ -510,12 +510,12 @@ selection_rest_statement
 
 condition
   :   expression { $$ = $1; }
-  |   fully_specified_type T_Identifier '=' initializer {
+  |   fully_specified_type T_Identifier T_Equal initializer {
         $$ = new VarExpr(yylloc, new Identifier(yylloc, $2)); }
   ;
 
 switch_statement
-  :   T_Switch '(' expression ')' '{' switch_statement_list '}' {
+  :   T_Switch T_LeftParen expression T_RightParen T_LeftBrace switch_statement_list T_RightBrace {
         $$ = new SwitchStmt($3, (List<Case*>*)$6, NULL); }
   ;
 
@@ -524,16 +524,16 @@ switch_statement_list
   ;
 
 case_label
-  :   T_Case expression ':' statement { List<Stmt*> *a = new List<Stmt*>;
+  :   T_Case expression T_Colon statement { List<Stmt*> *a = new List<Stmt*>;
         a->Append((Stmt*)$4); $$ = new Case((IntConstant*)$2, a); }
-  |   T_Default ':' statement { List<Stmt*> *a = new List<Stmt*>;
+  |   T_Default T_Colon statement { List<Stmt*> *a = new List<Stmt*>;
         a->Append((Stmt*)$3); $$ = new Default(a); }
   ;
 
 iteration_statement
-  :   T_While '(' condition ')' statement_no_new_scope {
+  :   T_While T_LeftParen condition T_RightParen statement_no_new_scope {
         $$ = new WhileStmt((Expr*)$3, $5); }
-  |   T_For '(' for_init_statement for_rest_statement ')' statement_no_new_scope {
+  |   T_For T_LeftParen for_init_statement for_rest_statement T_RightParen statement_no_new_scope {
         Expr* a; Expr *b = NULL; a = (Expr*)($4->Nth(0));
         if($4->NumElements() == 2) b = (Expr*)($4->Nth(1));  
         $$ = new ForStmt((Expr*)$3, a, b, $6);}
@@ -549,8 +549,8 @@ conditionopt
   ;
 
 for_rest_statement
-  :   conditionopt ';' { $$ = new List<Stmt*>; $$->Append($1); }
-  |   conditionopt ';' expression { $$ = new List<Stmt*>;
+  :   conditionopt T_Semicolon { $$ = new List<Stmt*>; $$->Append($1); }
+  |   conditionopt T_Semicolon expression { $$ = new List<Stmt*>;
         $$->Append($1); $$->Append($3); }
   ;
 
