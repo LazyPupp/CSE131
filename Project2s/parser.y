@@ -53,6 +53,12 @@ void yyerror(const char *msg); // standard error-handling routine
     List<Stmt*> *stmtlist;
     List<SwitchStmt*> *switchstmtlist;
 
+    ExprError *exprerror;
+    EmptyExpr *emptyexpr;
+    VarExpr *varexpr;
+    IntConstant *intconstant;
+    FloatConstant *floatconstant;
+
     Node *node;
     Identifier *ident;
     Error *error;
@@ -60,14 +66,9 @@ void yyerror(const char *msg); // standard error-handling routine
     VarDeclError *vardeclerror;
     FnDecl *fndecl;
     FormalsError *formalserror;
-    Expr *expression;
-    ExprError *exprerror;
-    EmptyExpr *emptyexpr;
-    VarExpr *varexpr;
-    IntConstant *intconstant;
-    FloatConstant *floatconstant;
+    Expr *expr;
     BoolConstant *boolconstant;
-    Operator *operato;
+    Operator *oper;
     CompoundExpr *compoundexpr;
     ArithmeticExpr *arithmeticexpr;
     RelationalExpr *relationalexpr;
@@ -144,33 +145,33 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <decl>      Decl
 */
 
-%type <expression>          variable_identifier
-%type <expression>          primary_expression
-%type <expression>          postfix_expression 
- //%type <expression>          integer_expression
- //%type <expression>          function_identifier
-%type <expression>          unary_expression
-%type <operato>             unary_operator
-%type <expression>          multiplicative_expression
-%type <expression>          additive_expression
-%type <expression>          shift_expression
-%type <expression>          relational_expression
-%type <expression>          equality_expression
-%type <expression>          and_expression
-%type <expression>          exclusive_or_expression
-%type <expression>          inclusive_or_expression
-%type <expression>          logical_and_expression
-%type <expression>          logical_xor_expression
-%type <expression>          logical_or_expression
-%type <expression>          conditional_expression
-%type <expression>          assignment_expression
-%type <operato>             assignment_operator
-%type <expression>          expression
+%type <expr>          variable_identifier
+%type <expr>          primary_expression
+%type <expr>          postfix_expression 
+%type <expr>          unary_expression
+%type <oper>             unary_operator
+%type <expr>          multiplicative_expression
+%type <expr>          additive_expression
+%type <expr>          shift_expression
+%type <expr>          relational_expression
+%type <expr>          equality_expression
+%type <expr>          and_expression
+%type <expr>          exclusive_or_expression
+%type <expr>          inclusive_or_expression
+%type <expr>          logical_and_expression
+%type <expr>          logical_xor_expression
+%type <expr>          logical_or_expression
+%type <expr>          conditional_expression
+%type <expr>          assignment_expression
+%type <oper>             assignment_operator
+%type <expr>          expression
 %type <decl>                declaration
 %type <decl>                function_prototype
 %type <decl>                function_declarator
 %type <decl>                function_header_with_parameters
 %type <decl>                function_header
+%type <expr>          integer_expression
+//%type <expr>          function_identifier
 %type <decl>                parameter_declarator
 %type <decl>                parameter_declaration
 %type <type>                parameter_type_specifier
@@ -179,7 +180,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <type>                fully_specified_type
 %type <type>                type_specifier
 %type <type>                type_specifier_nonarray
-%type <expression>          initializer
+%type <expr>          initializer
 %type <stmt>                declaration_statement
 %type <stmt>                statement
 %type <stmt>                statement_no_new_scope
@@ -202,6 +203,9 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <decllist>            translation_unit
 %type <decl>                external_declaration
 %type <decl>                function_definition
+%type <expr>              constant_expression
+//%type <stmt>               jump_statement
+
 
 
 
@@ -218,16 +222,19 @@ void yyerror(const char *msg); // standard error-handling routine
 
 Program     
   :   translation_unit  { @1;
-                                Program *program = new Program($1);
-                                if (ReportError::NumErrors() == 0) 
-                                  program->Print(0);
-
-                                }
+                          Program *program = new Program($1);
+                          if (ReportError::NumErrors() == 0) 
+                          program->Print(0);
+                         }
   ;
 
 
 variable_identifier  
   :   T_Identifier { $$ = new VarExpr(yylloc, new Identifier(yylloc, $1)); }
+  ;
+
+integer_expression
+  :   expression { $$ = $1; }
   ;
 
 primary_expression
@@ -248,7 +255,47 @@ postfix_expression
   |   postfix_expression T_Dec { $$ = new PostfixExpr($1, 
           new Operator(yylloc, "--")); }
   ;   
+/* for postfix_expr
+  |   function_call   {$$ = $1;}
 
+  |   postfix_expression T_LeftBracket integer_expression T_RightBracket { $$ = newPostFixExpr( $1 ,  new Operator(yylloc, "--") ); }
+
+*/
+
+/*
+function_call
+  :   function_call_or_method {$$ = $1;}
+  ;
+
+function_call_or_method
+  :   function_call_generic {$$ = $1;}
+
+function_call_generic 
+  :   function_call_header_with_parameters T_RightParen { $$=$1; }
+  |   function_call_header_no_parameters T_RightParen { $$=$1; }
+  ;
+
+function_call_header_no_parameters
+  :   function_call_header T_Void {$$=$1;  }
+  |   function_call_header  { $$=$1;  }
+  ;
+
+
+function_call_header_with_parameters
+  :   function_call_header assignment_expression { $$=$1; }
+  |   function_call_header  {$$=$1;   }
+  ;
+
+function_call_header
+  :   function_identifier T_LeftParen {$$=$1;  }
+  ;
+
+
+function_identifier
+  :   type_specifier { $$ = $1; }
+  |   postfix_expression { $$ = $1; }
+  ; 
+*/
 
 unary_expression
   :   postfix_expression { $$ = $1; }
@@ -356,11 +403,18 @@ expression
   :   assignment_expression { $$ = $1; }
   ;
 
+constant_expression
+  :   conditional_expression { $$ = $1;}
+  ;
 
 declaration
   :   function_prototype T_Semicolon { $$ = $1; }
   |   init_declarator_list T_Semicolon { $$ = $1; }
   ;
+/* For declaration
+  |   type_qualifier T_Identifier T_Semicolon {$$ = $1;  }
+*/
+
 
 function_prototype
   :   function_declarator T_RightParen { $$ = $1; }
@@ -393,8 +447,7 @@ function_header
   ;
 
 parameter_declarator
-  :   type_specifier T_Identifier { $$ = new VarDecl(
-          new Identifier(yylloc, $2), $1); }
+  :   type_specifier T_Identifier { $$ = new VarDecl( new Identifier(yylloc, $2), $1); }
   ;
 
 parameter_declaration
@@ -412,15 +465,54 @@ init_declarator_list
 
 single_declaration
   :   fully_specified_type T_Identifier { $$ = new VarDecl(  new Identifier(yylloc, $2), $1); }
+  |   fully_specified_type T_Identifier T_Equal initializer { $$ = new VarDecl(  new Identifier(yylloc, $2), $1,$4); }
   ;
+/* for single_declaration
+  |   fully_specified_type T_Identifier array_specifier { $$ = new VarDecl(  new Identifier(yylloc, $2), $1); }
+  :   fully_specified_type {$$ = $1;}
+
+*/
+
 
 fully_specified_type
   :   type_specifier { $$ = $1; }
   ;
 
+/* For fully_specified_type
+  |   type_qualifier type_specifier { $$=$1; }
+*/
+
+  /*
+type_qualifier
+  :   single_type_qualifier  {$$=$1;  }
+  |   type_qualifier single_type_qualifier {$$=$1;  }
+  ;
+
+single_type_qualifier
+  : storage_qualifier { $$ = $1; }
+  ;
+
+storage_qualifier
+  : T_Const  {$$= new TypeQualifier(yylloc); }
+  | T_In  { $$= new TypeQualifier(yylloc);}
+  | T_Out {$$= new TypeQualifier(yylloc); }
+  | T_Uniform {$$= new TypeQualifier(yylloc);}
+  ;
+
+array_specifier
+  :   T_LeftBracket constant_expression T_RightBracket { $$ = $1;  }
+  ;
+   */
+
+
 type_specifier
   :   type_specifier_nonarray { $$ = $1; }
   ;
+
+/* for type specifier
+  |   type_specifier_nonarray array_specifier { $$ = $1;  }
+
+*/
 
 type_specifier_nonarray
   :   T_Void { $$ = Type::voidType; }
@@ -433,6 +525,15 @@ type_specifier_nonarray
   |   T_Mat2 { $$ = Type::mat2Type; }
   |   T_Mat3 { $$ = Type::mat3Type; }
   |   T_Mat4 { $$ = Type::mat4Type; }
+  |   T_Ivec2 { $$ = Type::ivec2Type; }
+  |   T_Ivec3 { $$ = Type::ivec3Type; }
+  |   T_Ivec4 { $$ = Type::ivec4Type; }
+  |   T_Uvec2 { $$ = Type::uvec2Type;}
+  |   T_Uvec3  { $$ = Type::uvec3Type;}
+  |   T_Uvec4  { $$ = Type::uvec4Type; }
+  |   T_Bvec2 { $$ = Type::bvec2Type;}
+  |   T_Bvec3  { $$ = Type::bvec3Type; }
+  |   T_Bvec4  { $$ = Type::bvec4Type;}
   ; 
 
 initializer
@@ -476,8 +577,7 @@ compound_statement_with_scope
   ;
 
 compound_statement_no_new_scope
-  :   T_LeftBrace T_RightBrace { $$ = new StmtBlock(
-        new List<VarDecl*>, new List<Stmt*>); }
+  :   T_LeftBrace T_RightBrace { $$ = new StmtBlock( new List<VarDecl*>, new List<Stmt*>); }
   |   T_LeftBrace statement_list T_RightBrace { $$ = new StmtBlock(
         new List<VarDecl*>, $2); }
   ;
@@ -531,8 +631,8 @@ case_label
   ;
 
 iteration_statement
-  :   T_While T_LeftParen condition T_RightParen statement_no_new_scope {
-        $$ = new WhileStmt((Expr*)$3, $5); }
+  :   T_While T_LeftParen condition T_RightParen statement_no_new_scope { $$ = new WhileStmt((Expr*)$3, $5); }
+  |   T_Do statement_with_scope T_While T_LeftParen expression T_RightParen T_Semicolon { $$ = new DoWhileStmt( $2, (Expr*)$5); }
   |   T_For T_LeftParen for_init_statement for_rest_statement T_RightParen statement_no_new_scope {
         Expr* a; Expr *b = NULL; a = (Expr*)($4->Nth(0));
         if($4->NumElements() == 2) b = (Expr*)($4->Nth(1));  
@@ -553,7 +653,14 @@ for_rest_statement
   |   conditionopt T_Semicolon expression { $$ = new List<Stmt*>;
         $$->Append($1); $$->Append($3); }
   ;
-
+/*
+jump_statement
+  :   T_Continue T_Semicolon {$$ = $1;  }
+  |   T_Break    T_Semicolon {$$ = $1;  }
+  |   T_Return T_Semicolon { $$ = $1; }     
+  |   T_Return expression T_Semicolon { $$ = $1; }
+  ;
+*/
 translation_unit
   :   external_declaration { $$ = new List<Decl*>();
         $$->Append($1); }
