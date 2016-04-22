@@ -300,11 +300,6 @@ function_call_header_with_parameters
   |   function_identifier T_LeftParen arg_params {List<Expr*> *paramList = $3;
 						 $$ = new Call(@1,NULL,$1,paramList);   }
   ;
-/*
-function_call_header
-  :   function_identifier T_LeftParen {$$=$1;  }
-  ;
-*/
 
 function_identifier
   :   type_ident { $$ = $1; }
