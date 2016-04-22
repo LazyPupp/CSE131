@@ -23,6 +23,11 @@
 
 void yyerror(const char *msg); // standard error-handling routine
 
+struct types{
+   TypeQualifer *typequals;
+   Type		*typespec;
+}
+
 %}
 
 /* The section before the first %% is the Definitions section of the yacc
@@ -48,7 +53,8 @@ void yyerror(const char *msg); // standard error-handling routine
     List<Decl*> *decllist;
     char *charConstant;
     double doubleConstant;
-   
+    
+    List<Expr*> *exprlist;
 
     List<Stmt*> *stmtlist;
     List<SwitchStmt*> *switchstmtlist;
@@ -99,6 +105,9 @@ void yyerror(const char *msg); // standard error-handling routine
     Type *type;
     NamedType *namedtype;
     ArrayType *arraytype;
+    TypeQualifier *typequal;
+
+    struct types typer;
 
 }
 
@@ -204,8 +213,12 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <decl>                external_declaration
 %type <decl>                function_definition
 %type <expr>              constant_expression
-//%type <stmt>               jump_statement
-
+%type <stmt>               jump_statement
+%type <typequal>		   type_qualifier
+%type <typequal>              storage_qualifier
+// %type <vardecl>             array_specifier
+//%type <exprlist>             arg_params
+%type <typer>                  qual_spec
 
 
 
@@ -254,25 +267,17 @@ postfix_expression
           new Operator(yylloc, "++")); }
   |   postfix_expression T_Dec { $$ = new PostfixExpr($1, 
           new Operator(yylloc, "--")); }
+  |   postfix_expression T_LeftBracket integer_expression T_RightBracket { $$ = new ArrayAccess(@1,$1,$3); }
   ;   
 /* for postfix_expr
   |   function_call   {$$ = $1;}
-
-  |   postfix_expression T_LeftBracket integer_expression T_RightBracket { $$ = newPostFixExpr( $1 ,  new Operator(yylloc, "--") ); }
 
 */
 
 /*
 function_call
-  :   function_call_or_method {$$ = $1;}
-  ;
-
-function_call_or_method
-  :   function_call_generic {$$ = $1;}
-
-function_call_generic 
   :   function_call_header_with_parameters T_RightParen { $$=$1; }
-  |   function_call_header_no_parameters T_RightParen { $$=$1; }
+  |   function_call_header_no_parameters T_RightParen { $$= new Call(@1,new EmptyExpr(),new Identifier() ); }
   ;
 
 function_call_header_no_parameters
@@ -296,6 +301,8 @@ function_identifier
   |   postfix_expression { $$ = $1; }
   ; 
 */
+
+	
 
 unary_expression
   :   postfix_expression { $$ = $1; }
@@ -410,10 +417,8 @@ constant_expression
 declaration
   :   function_prototype T_Semicolon { $$ = $1; }
   |   init_declarator_list T_Semicolon { $$ = $1; }
+  |   type_qualifier T_Identifier T_Semicolon {$$ = (Decl*)$1;  }
   ;
-/* For declaration
-  |   type_qualifier T_Identifier T_Semicolon {$$ = $1;  }
-*/
 
 
 function_prototype
@@ -425,19 +430,13 @@ function_declarator
   |   function_header_with_parameters { $$ = $1; }
   ;
  
- /*
+
 function_header_with_parameters
   :   function_header parameter_declaration { $$ = $1;
         ((FnDecl*)($$))->formals->Append((VarDecl*)$2); }
   |   function_header_with_parameters ',' parameter_declaration {
         $$ = $1;
         ((FnDecl*)($$))->formals->Append((VarDecl*)$3); }
-  ;
- */
-
-function_header_with_parameters
-  :   function_header parameter_declaration { $$ = $1;}
-  |   function_header_with_parameters ',' parameter_declaration { $$ = $1;}
   ;
 
 
@@ -465,52 +464,47 @@ init_declarator_list
 
 single_declaration
   :   fully_specified_type T_Identifier { $$ = new VarDecl(  new Identifier(yylloc, $2), $1); }
+  |   fully_specified_type {$$ = (VarDecl*)$1;} 
   |   fully_specified_type T_Identifier T_Equal initializer { $$ = new VarDecl(  new Identifier(yylloc, $2), $1,$4); }
+  |   fully_specified_type T_Identifier array_specifier { $$ = new VarDecl(new Identifier(yylloc, $2), new ArrayType(@1,$1)); }
   ;
-/* for single_declaration
-  |   fully_specified_type T_Identifier array_specifier { $$ = new VarDecl(  new Identifier(yylloc, $2), $1); }
-  :   fully_specified_type {$$ = $1;}
-
-*/
 
 
 fully_specified_type
   :   type_specifier { $$ = $1; }
+  |   qual_spec { $$ = $1; } 
   ;
 
-/* For fully_specified_type
-  |   type_qualifier type_specifier { $$=$1; }
-*/
+qual_spec
+  :   type_qualifier type_specifier { $$ = new struct typess;
+				      $$->typequals = $1;
+				      $$->typespec = $2;}
 
-  /*
 type_qualifier
-  :   single_type_qualifier  {$$=$1;  }
-  |   type_qualifier single_type_qualifier {$$=$1;  }
+  :   storage_qualifier  {$$=$1;  }
+  |   type_qualifier storage_qualifier {$$= $1;  }
   ;
 
-single_type_qualifier
-  : storage_qualifier { $$ = $1; }
-  ;
 
 storage_qualifier
-  : T_Const  {$$= new TypeQualifier(yylloc); }
-  | T_In  { $$= new TypeQualifier(yylloc);}
-  | T_Out {$$= new TypeQualifier(yylloc); }
-  | T_Uniform {$$= new TypeQualifier(yylloc);}
+  : T_Const  {$$= TypeQualifier::constTypeQualifier; }
+  | T_In  { $$= TypeQualifier::inTypeQualifier ;}
+  | T_Out {$$= TypeQualifier::outTypeQualifier; }
+  | T_Uniform {$$= TypeQualifier::uniformTypeQualifier;}
   ;
 
 array_specifier
-  :   T_LeftBracket constant_expression T_RightBracket { $$ = $1;  }
+  :   T_LeftBracket constant_expression T_RightBracket { }
   ;
-   */
+
 
 
 type_specifier
   :   type_specifier_nonarray { $$ = $1; }
+  |   type_specifier_nonarray array_specifier { $$ = new ArrayType(@1,$1);  }
   ;
 
 /* for type specifier
-  |   type_specifier_nonarray array_specifier { $$ = $1;  }
 
 */
 
@@ -567,6 +561,7 @@ simple_statement
   |   switch_statement { $$ = $1; }
   |   case_label { $$ = $1; }
   |   iteration_statement { $$ = $1; }
+  |   jump_statement { $$ = $1; } 
   ;
 
 compound_statement_with_scope
@@ -653,14 +648,13 @@ for_rest_statement
   |   conditionopt T_Semicolon expression { $$ = new List<Stmt*>;
         $$->Append($1); $$->Append($3); }
   ;
-/*
+
 jump_statement
-  :   T_Continue T_Semicolon {$$ = $1;  }
-  |   T_Break    T_Semicolon {$$ = $1;  }
-  |   T_Return T_Semicolon { $$ = $1; }     
-  |   T_Return expression T_Semicolon { $$ = $1; }
+  :   T_Break    T_Semicolon {$$ = new BreakStmt(@1);  }
+  |   T_Return T_Semicolon { $$ = new ReturnStmt(@1, new EmptyExpr()); }     
+  |   T_Return expression T_Semicolon { $$ = new ReturnStmt(@2,$2); }
   ;
-*/
+
 translation_unit
   :   external_declaration { $$ = new List<Decl*>();
         $$->Append($1); }
