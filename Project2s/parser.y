@@ -22,12 +22,12 @@
 #include "errors.h"
 
 void yyerror(const char *msg); // standard error-handling routine
-
+/*
 struct types{
    TypeQualifer *typequals;
    Type		*typespec;
 }
-
+*/
 %}
 
 /* The section before the first %% is the Definitions section of the yacc
@@ -107,7 +107,7 @@ struct types{
     ArrayType *arraytype;
     TypeQualifier *typequal;
 
-    struct types typer;
+//    struct types typer;
 
 }
 
@@ -217,10 +217,13 @@ struct types{
 %type <typequal>		   type_qualifier
 %type <typequal>              storage_qualifier
 // %type <vardecl>             array_specifier
-//%type <exprlist>             arg_params
-%type <typer>                  qual_spec
-
-
+%type <exprlist>             arg_params
+//%type <typer>                  qual_spec
+%type <ident>			type_ident	
+%type <expr>		    function_call
+%type <expr>		    function_call_header_no_parameters
+%type <expr>		    function_call_header_with_parameters
+%type <ident>		    function_identifier
 
 %%
 /* Rules
@@ -268,41 +271,51 @@ postfix_expression
   |   postfix_expression T_Dec { $$ = new PostfixExpr($1, 
           new Operator(yylloc, "--")); }
   |   postfix_expression T_LeftBracket integer_expression T_RightBracket { $$ = new ArrayAccess(@1,$1,$3); }
+  |   function_call	{$$= $1;}
   ;   
 /* for postfix_expr
   |   function_call   {$$ = $1;}
 
 */
 
-/*
+
 function_call
   :   function_call_header_with_parameters T_RightParen { $$=$1; }
-  |   function_call_header_no_parameters T_RightParen { $$= new Call(@1,new EmptyExpr(),new Identifier() ); }
+  |   function_call_header_no_parameters T_RightParen { $$=$1; }
   ;
 
 function_call_header_no_parameters
-  :   function_call_header T_Void {$$=$1;  }
-  |   function_call_header  { $$=$1;  }
+  :   function_identifier T_LeftParen T_Void { //List<Expr*> *exprlist = new List<Expr*>;
+	$$ = new Call(@1,NULL,$1 ,new List<Expr*>) ;  }
+  |   function_identifier T_LeftParen { 
+	$$ = new Call(@1, NULL , $1 ,new List<Expr*>);  }
   ;
 
 
 function_call_header_with_parameters
-  :   function_call_header assignment_expression { $$=$1; }
-  |   function_call_header  {$$=$1;   }
+  :   function_identifier T_LeftParen assignment_expression { 
+						List<Expr*> *paramList = new List<Expr*>;
+						paramList -> Append($3);
+						$$= new Call(@1,NULL, $1 ,paramList); }
+  |   function_identifier T_LeftParen arg_params {List<Expr*> *paramList = $3;
+						 $$ = new Call(@1,NULL,$1,paramList);   }
   ;
-
+/*
 function_call_header
   :   function_identifier T_LeftParen {$$=$1;  }
   ;
-
-
-function_identifier
-  :   type_specifier { $$ = $1; }
-  |   postfix_expression { $$ = $1; }
-  ; 
 */
 
-	
+function_identifier
+  :   type_ident { $$ = $1; }
+  |   T_Identifier { $$ = new Identifier(@1,$1); }
+  ; 
+
+arg_params
+  :   arg_params T_Comma assignment_expression		{($$ = $1)-> Append($3);}
+  |   assignment_expression				{($$ = new List<Expr*>)-> Append($1);}
+  ;
+
 
 unary_expression
   :   postfix_expression { $$ = $1; }
@@ -433,10 +446,12 @@ function_declarator
 
 function_header_with_parameters
   :   function_header parameter_declaration { $$ = $1;
-        ((FnDecl*)($$))->formals->Append((VarDecl*)$2); }
+    //    ((FnDecl*)($$))->formals->Append((VarDecl*)$2);
+ }
   |   function_header_with_parameters ',' parameter_declaration {
         $$ = $1;
-        ((FnDecl*)($$))->formals->Append((VarDecl*)$3); }
+     //   ((FnDecl*)($$))->formals->Append((VarDecl*)$3);
+ }
   ;
 
 
@@ -472,13 +487,9 @@ single_declaration
 
 fully_specified_type
   :   type_specifier { $$ = $1; }
-  |   qual_spec { $$ = $1; } 
+  |   type_qualifier type_specifier { $$ = $2; } 
   ;
 
-qual_spec
-  :   type_qualifier type_specifier { $$ = new struct typess;
-				      $$->typequals = $1;
-				      $$->typespec = $2;}
 
 type_qualifier
   :   storage_qualifier  {$$=$1;  }
@@ -529,6 +540,26 @@ type_specifier_nonarray
   |   T_Bvec3  { $$ = Type::bvec3Type; }
   |   T_Bvec4  { $$ = Type::bvec4Type;}
   ; 
+type_ident
+  :   T_Void { $$ = new Identifier(@1, "void"); }
+  |   T_Float { $$ = new Identifier(@1, "float");  }
+  |   T_Int  { $$ = new Identifier(@1, "int"); }
+  |   T_Bool { $$ = new Identifier(@1, "bool"); }
+  |   T_Vec2 { $$ = new Identifier(@1, "vec2"); }
+  |   T_Vec3 { $$ = new Identifier(@1, "vec3"); }
+  |   T_Vec4 { $$ = new Identifier(@1, "vec4");  }
+  |   T_Mat2 { $$ = new Identifier(@1, "mat2");  }
+  |   T_Mat3 { $$ = new Identifier(@1, "mat3");  }
+  |   T_Mat4 { $$ = new Identifier(@1, "mat4");  }
+  |   T_Ivec2 { $$ = new Identifier(@1, "ivec2"); }
+  |   T_Ivec3 { $$ = new Identifier(@1, "ivec3"); }
+  |   T_Ivec4 { $$ = new Identifier(@1, "ivec4");  }
+  |   T_Uvec2 { $$ = new Identifier(@1, "uvec2"); }
+  |   T_Uvec3  { $$ = new Identifier(@1, "uvec3"); }
+  |   T_Uvec4  { $$ = new Identifier(@1, "uvec4");  }
+  |   T_Bvec2 { $$ = new Identifier(@1, "bvec2"); }
+  |   T_Bvec3  { $$ = new Identifier(@1, "bvec3");  }
+  |   T_Bvec4  { $$ = new Identifier(@1, "bvec4"); }
 
 initializer
   :   assignment_expression { $$ = $1; }
