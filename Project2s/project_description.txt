@@ -1,0 +1,37 @@
+Patrick Nguyen A10847376
+Kyle Szeto A10907296
+
+CSE131  Project 2 Description
+
+For this project we had to read the PDF and analyze the
+GLSL Specification. We decided that writing the rules/actions down
+for the rule section would be the easiest way to start off. After
+many failed attempts, we worked on nonterminal types to
+the union brace.
+
+For errors, the most common errors were that nonterminal
+types were useless in the grammar and the some nonterminal
+types were not declared in the scope. These errors were 
+easily fixed by backtracking the code from the translation_unit
+and figuring out why the grammars were not linked or avoided.
+Also, sometimes we had duplicate rules or similar rules, so we 
+had to simplify them by removing them or combining the rules.
+
+For the conflicts, we decided to change the Makefile to 
+create a debug file that allowed us to see where
+there is a conflict in the code. For example, the debug
+file would state there would be a conflict at "State 262."
+While, scrolling through the conflicts, we found that
+many of our rules created a loop and thus, the program was confused
+which rules to choose at certain points. We fixed all of these 
+loop cases and made changes that allowed the code to flow
+more easily.
+
+One of the hardest parts of the program assignment was figuring
+out what to write for the actions in the rules section. For example,
+fully_specfied_type was stated as type_qualifier and type_specifier,
+however there was no way for us to return two types. So we had to
+modify the other rules and use a different constructor for the rules.
+Parts like this made the program challenging, however we felt like
+we learned a lot from parsing by figuring out different code 
+scenarios.

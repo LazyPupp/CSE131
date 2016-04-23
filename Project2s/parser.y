@@ -1,3 +1,10 @@
+/*
+Patrick Nguyen A10847376 
+
+Kyle Szeto
+
+
+*/
 /* File: parser.y
  * --------------
  * Bison input file to generate the parser for the compiler.
@@ -22,6 +29,8 @@
 #include "errors.h"
 
 void yyerror(const char *msg); // standard error-handling routine
+
+//Not used for type qualifier
 /*
 struct types{
    TypeQualifer *typequals;
@@ -59,54 +68,22 @@ struct types{
     List<Stmt*> *stmtlist;
     List<SwitchStmt*> *switchstmtlist;
 
-    ExprError *exprerror;
-    EmptyExpr *emptyexpr;
     VarExpr *varexpr;
-    IntConstant *intconstant;
-    FloatConstant *floatconstant;
-
-    Node *node;
     Identifier *ident;
     Error *error;
     VarDecl *vardecl;
-    VarDeclError *vardeclerror;
     FnDecl *fndecl;
-    FormalsError *formalserror;
     Expr *expr;
     BoolConstant *boolconstant;
     Operator *oper;
-    CompoundExpr *compoundexpr;
-    ArithmeticExpr *arithmeticexpr;
-    RelationalExpr *relationalexpr;
-    EqualityExpr *equalityexpr;
-    LogicalExpr *logicalexpr;
-    AssignExpr *assignexpr;
-    PostfixExpr *postfixexpr;
-    LValue *lvalue;
-    ArrayAccess *arrayaccess;
-    FieldAccess *fieldaccess;
     Call *call;
-    ActualsError *actualserror;
     Stmt *stmt;
     StmtBlock *stmtblock;
-    ConditionalStmt *conditionalstmt;
-    LoopStmt *loopstmt;
-    ForStmt *forstmt;
-    WhileStmt *whilestmt;
-    IfStmt *ifstmt;
-    IfStmtExprError *ifstmtexprerror;
-    BreakStmt *breakstmt;
-    ReturnStmt *returnstmt;
-    SwitchLabel *switchlabel;
-    Case *cas;
-    Default *defaul;
-    SwitchStmt *switchstmt;
-    SwitchStmtError *switchstmterror;
     Type *type;
     NamedType *namedtype;
     ArrayType *arraytype;
     TypeQualifier *typequal;
-
+    List<VarDecl*> *vardList;
 //    struct types typer;
 
 }
@@ -138,6 +115,8 @@ struct types{
 %token   <floatConstant> T_FloatConstant
 %token   <boolConstant> T_BoolConstant
 
+%nonassoc NoElseToken
+%nonassoc T_Else
 /* Non-terminal types
  * ------------------
  * In order for yacc to assign/access the correct field of $$, $1, we
@@ -178,7 +157,7 @@ struct types{
 %type <decl>                function_prototype
 %type <decl>                function_declarator
 %type <decl>                function_header_with_parameters
-%type <decl>                function_header
+//%type <decl>                function_header
 %type <expr>          integer_expression
 //%type <expr>          function_identifier
 %type <decl>                parameter_declarator
@@ -186,17 +165,16 @@ struct types{
 %type <type>                parameter_type_specifier
 %type <decl>                init_declarator_list
 %type <decl>                single_declaration
-%type <type>                fully_specified_type
 %type <type>                type_specifier
 %type <type>                type_specifier_nonarray
 %type <expr>          initializer
 %type <stmt>                declaration_statement
 %type <stmt>                statement
-%type <stmt>                statement_no_new_scope
-%type <stmt>                statement_with_scope
+//%type <stmt>                statement_no_new_scope
+//%type <stmt>                statement_with_scope
 %type <stmt>                simple_statement
 %type <stmt>            compound_statement_with_scope
-%type <stmt>            compound_statement_no_new_scope
+//%type <stmt>            compound_statement_no_new_scope
 %type <stmtlist>            statement_list
 %type <stmt>          expression_statement
 %type <stmt>          selection_statement
@@ -223,8 +201,8 @@ struct types{
 %type <expr>		    function_call
 %type <expr>		    function_call_header_no_parameters
 %type <expr>		    function_call_header_with_parameters
-%type <ident>		    function_identifier
-
+//%type <ident>		    function_identifier
+%type <vardList>	    func_arg_list
 %%
 /* Rules
  * -----
@@ -242,6 +220,26 @@ Program
                           if (ReportError::NumErrors() == 0) 
                           program->Print(0);
                          }
+  ;
+
+//Start at translation unit to start the beginning of the program
+
+translation_unit
+  :   external_declaration { $$ = new List<Decl*>();
+        $$->Append($1); }
+  |   translation_unit external_declaration { $$ = $1;
+        $$->Append($2); }
+  ;
+
+external_declaration
+  :   function_definition { $$ = $1; }
+  |   declaration { $$ = $1; }
+  ;
+
+function_definition
+  :   function_prototype compound_statement_with_scope {
+        $$ = $1; ((FnDecl*)$$)->SetFunctionBody($2);
+      }
   ;
 
 
@@ -273,10 +271,6 @@ postfix_expression
   |   postfix_expression T_LeftBracket integer_expression T_RightBracket { $$ = new ArrayAccess(@1,$1,$3); }
   |   function_call	{$$= $1;}
   ;   
-/* for postfix_expr
-  |   function_call   {$$ = $1;}
-
-*/
 
 
 function_call
@@ -285,30 +279,33 @@ function_call
   ;
 
 function_call_header_no_parameters
-  :   function_identifier T_LeftParen T_Void { //List<Expr*> *exprlist = new List<Expr*>;
+  :   type_ident T_LeftParen T_Void { 
 	$$ = new Call(@1,NULL,$1 ,new List<Expr*>) ;  }
-  |   function_identifier T_LeftParen { 
-	$$ = new Call(@1, NULL , $1 ,new List<Expr*>);  }
+  |   type_ident T_LeftParen { 
+	$$ = new Call(@1,NULL,$1 ,new List<Expr*>) ;  }
+  |   T_Identifier T_LeftParen T_Void { 
+	$$ = new Call(@1, NULL , new Identifier(@1,$1) ,new List<Expr*>);  }
+  |   T_Identifier T_LeftParen { 
+	$$ = new Call(@1, NULL , new Identifier(@1,$1) ,new List<Expr*>);  }
+
   ;
 
 
 function_call_header_with_parameters
-  :   function_identifier T_LeftParen assignment_expression { 
-						List<Expr*> *paramList = new List<Expr*>;
-						paramList -> Append($3);
-						$$= new Call(@1,NULL, $1 ,paramList); }
-  |   function_identifier T_LeftParen arg_params {List<Expr*> *paramList = $3;
-						 $$ = new Call(@1,NULL,$1,paramList);   }
+  :   type_ident T_LeftParen assignment_expression { 
+			List<Expr*> *paramList = new List<Expr*>;
+			paramList -> Append($3);
+			$$= new Call(@1,NULL, $1 ,paramList); }
+  |   T_Identifier T_LeftParen arg_params {
+		List<Expr*> *paramList = $3;	
+	   	$$ = new Call(@1,NULL,new Identifier(@1,$1),paramList);}
   ;
 
-function_identifier
-  :   type_ident { $$ = $1; }
-  |   T_Identifier { $$ = new Identifier(@1,$1); }
-  ; 
-
 arg_params
-  :   arg_params T_Comma assignment_expression		{($$ = $1)-> Append($3);}
-  |   assignment_expression				{($$ = new List<Expr*>)-> Append($1);}
+  :   arg_params T_Comma assignment_expression		
+	{($$ = $1)-> Append($3);}
+  |   assignment_expression				
+	{($$ = new List<Expr*>)-> Append($1);}
   ;
 
 
@@ -376,6 +373,30 @@ exclusive_or_expression
   :   and_expression { $$ = $1; }
   ;
 
+
+assignment_expression
+  :   conditional_expression { $$ = $1; }
+  |   unary_expression assignment_operator assignment_expression {
+        $$ = new AssignExpr($1, $2, $3); }
+  ;
+
+assignment_operator
+  :   T_Equal { $$ = new Operator(yylloc, "="); }
+  |   T_MulAssign { $$ = new Operator(yylloc, "*="); }
+  |   T_DivAssign { $$ = new Operator(yylloc, "/="); }
+  |   T_AddAssign { $$ = new Operator(yylloc, "+="); }
+  |   T_SubAssign { $$ = new Operator(yylloc, "-="); }
+  ;
+
+expression
+  :   assignment_expression { $$ = $1; }
+  ;
+
+constant_expression
+  :   conditional_expression { $$ = $1;}
+  ;
+
+
 inclusive_or_expression
   :   exclusive_or_expression { $$ = $1; }
   ;
@@ -400,27 +421,7 @@ conditional_expression
   :   logical_or_expression { $$ = $1; }
   ;
 
-assignment_expression
-  :   conditional_expression { $$ = $1; }
-  |   unary_expression assignment_operator assignment_expression {
-        $$ = new AssignExpr($1, $2, $3); }
-  ;
 
-assignment_operator
-  :   T_Equal { $$ = new Operator(yylloc, "="); }
-  |   T_MulAssign { $$ = new Operator(yylloc, "*="); }
-  |   T_DivAssign { $$ = new Operator(yylloc, "/="); }
-  |   T_AddAssign { $$ = new Operator(yylloc, "+="); }
-  |   T_SubAssign { $$ = new Operator(yylloc, "-="); }
-  ;
-
-expression
-  :   assignment_expression { $$ = $1; }
-  ;
-
-constant_expression
-  :   conditional_expression { $$ = $1;}
-  ;
 
 declaration
   :   function_prototype T_Semicolon { $$ = $1; }
@@ -429,31 +430,21 @@ declaration
   ;
 
 
-function_prototype
-  :   function_declarator T_RightParen { $$ = $1; }
+func_arg_list
+  :   func_arg_list T_Comma parameter_declaration	
+	{($$ = $1)-> Append((VarDecl*)$3);}
+  |   parameter_declaration				
+	{($$ = new List<VarDecl*>)-> Append((VarDecl*)$1);}
   ;
 
-function_declarator
-  :   function_header { $$ = $1; }
-  |   function_header_with_parameters { $$ = $1; }
-  ;
- 
-
-function_header_with_parameters
-  :   function_header parameter_declaration { $$ = $1;
-    //    ((FnDecl*)($$))->formals->Append((VarDecl*)$2);
- }
-  |   function_header_with_parameters ',' parameter_declaration {
-        $$ = $1;
-     //   ((FnDecl*)($$))->formals->Append((VarDecl*)$3);
- }
-  ;
-
-
+/*
 function_header
-  :   fully_specified_type T_Identifier T_LeftParen { $$ = new FnDecl(
+  :   type_specifier T_Identifier T_LeftParen { $$ = new FnDecl(
         new Identifier(yylloc, $2), $1, new List<VarDecl*>); }
+  |   type_qualifier type_specifier T_Identifier T_LeftParen { $$ = new FnDecl(
+        new Identifier(yylloc, $3), $2,$1, new List<VarDecl*>); }
   ;
+*/
 
 parameter_declarator
   :   type_specifier T_Identifier { $$ = new VarDecl( new Identifier(yylloc, $2), $1); }
@@ -464,33 +455,77 @@ parameter_declaration
   |   parameter_type_specifier { $$ = (Decl*)$1; }
   ;
 
+compound_statement_with_scope
+  :   T_LeftBrace T_RightBrace { $$ = new StmtBlock(
+        new List<VarDecl*>, new List<Stmt*>); }
+  |   T_LeftBrace statement_list T_RightBrace { $$ = new StmtBlock(
+        new List<VarDecl*>, $2); }
+  ;
+
+
+statement_list
+  :   statement { $$ = new List<Stmt*>; $$->Append($1); }
+  |   statement_list statement { $$ = $1; $$->Append($2); }
+  ;
+
+expression_statement
+  :   T_Semicolon { $$ = new StmtBlock(
+        new List<VarDecl*>, new List<Stmt*>); }
+  |   expression T_Semicolon { $$ = $1; }
+  ;
+
+
 parameter_type_specifier
   :   type_specifier { $$ = $1; }
   ;
+
+function_prototype
+  :   function_declarator T_RightParen { $$ = $1; }
+  ;
+
+function_declarator
+  :   type_specifier T_Identifier T_LeftParen { $$ = new FnDecl(
+        new Identifier(yylloc, $2), $1, new List<VarDecl*>); }
+  |   type_qualifier type_specifier T_Identifier T_LeftParen { $$ = new FnDecl(
+        new Identifier(yylloc, $3), $2,$1, new List<VarDecl*>); }
+  |   function_header_with_parameters { $$ = $1; }
+  ;
+ 
+
+function_header_with_parameters
+  :   type_specifier T_Identifier T_LeftParen func_arg_list { 
+	List<VarDecl*> *paramListF = $4;
+      $$ = new FnDecl(new Identifier(yylloc, $2), $1, paramListF); 
+  }
+  |   type_qualifier type_specifier T_Identifier T_LeftParen func_arg_list {
+	List<VarDecl*> *paramListF = $5;
+      $$ = new FnDecl(new Identifier(yylloc, $3), $2, $1, paramListF ); }
+  ;
+
 
 init_declarator_list
   :   single_declaration { $$ = $1; }
   ;
 
 single_declaration
-  :   fully_specified_type T_Identifier { $$ = new VarDecl(  new Identifier(yylloc, $2), $1); }
-  |   fully_specified_type {$$ = (VarDecl*)$1;} 
-  |   fully_specified_type T_Identifier T_Equal initializer { $$ = new VarDecl(  new Identifier(yylloc, $2), $1,$4); }
-  |   fully_specified_type T_Identifier array_specifier { $$ = new VarDecl(new Identifier(yylloc, $2), new ArrayType(@1,$1)); }
+  :   type_specifier T_Identifier { $$ = new VarDecl(  new Identifier(yylloc, $2), $1); }
+  |   type_specifier T_Identifier T_Equal initializer { $$ = new VarDecl(  new Identifier(yylloc, $2), $1,$4); }
+  |   type_qualifier type_specifier T_Identifier T_Equal initializer { $$ = new VarDecl(  new Identifier(yylloc, $3), $2,$1,$5); }
+  |   type_specifier T_Identifier array_specifier { $$ = new VarDecl(new Identifier(yylloc, $2), new ArrayType(@1,$1)); }
+  |   type_qualifier type_specifier T_Identifier array_specifier { $$ = new VarDecl(new Identifier(yylloc, $3), new ArrayType(@2,$2), $1); }
+  |   type_qualifier type_specifier T_Identifier { $$ = new VarDecl(  new Identifier(yylloc, $3), $2, $1); }
   ;
-
-
-fully_specified_type
-  :   type_specifier { $$ = $1; }
-  |   type_qualifier type_specifier { $$ = $2; } 
-  ;
-
 
 type_qualifier
   :   storage_qualifier  {$$=$1;  }
   |   type_qualifier storage_qualifier {$$= $1;  }
   ;
 
+
+type_specifier
+  :   type_specifier_nonarray { $$ = $1; }
+  |   type_specifier_nonarray array_specifier { $$ = new ArrayType(@1,$1);  }
+  ;
 
 storage_qualifier
   : T_Const  {$$= TypeQualifier::constTypeQualifier; }
@@ -501,13 +536,6 @@ storage_qualifier
 
 array_specifier
   :   T_LeftBracket constant_expression T_RightBracket { }
-  ;
-
-
-
-type_specifier
-  :   type_specifier_nonarray { $$ = $1; }
-  |   type_specifier_nonarray array_specifier { $$ = new ArrayType(@1,$1);  }
   ;
 
 /* for type specifier
@@ -535,6 +563,8 @@ type_specifier_nonarray
   |   T_Bvec3  { $$ = Type::bvec3Type; }
   |   T_Bvec4  { $$ = Type::bvec4Type;}
   ; 
+
+//For the function call methods to use it with
 type_ident
   :   T_Void { $$ = new Identifier(@1, "void"); }
   |   T_Float { $$ = new Identifier(@1, "float");  }
@@ -555,7 +585,7 @@ type_ident
   |   T_Bvec2 { $$ = new Identifier(@1, "bvec2"); }
   |   T_Bvec3  { $$ = new Identifier(@1, "bvec3");  }
   |   T_Bvec4  { $$ = new Identifier(@1, "bvec4"); }
-
+  ;
 initializer
   :   assignment_expression { $$ = $1; }
   ;
@@ -569,17 +599,6 @@ statement
   |   simple_statement { $$ = $1; }
   ;
 
-
-statement_no_new_scope
-  :   compound_statement_no_new_scope { $$ = $1; }
-  |   simple_statement { $$ = $1; }
-  ;
-
-statement_with_scope
-  :   compound_statement_no_new_scope { $$ = $1; }
-  |   simple_statement { $$ = $1; }
-  ;
-
 simple_statement
   :   declaration_statement { $$ = $1; }
   |   expression_statement { $$ = $1; }
@@ -590,29 +609,6 @@ simple_statement
   |   jump_statement { $$ = $1; } 
   ;
 
-compound_statement_with_scope
-  :   T_LeftBrace T_RightBrace { $$ = new StmtBlock(
-        new List<VarDecl*>, new List<Stmt*>); }
-  |   T_LeftBrace statement_list T_RightBrace { $$ = new StmtBlock(
-        new List<VarDecl*>, $2); }
-  ;
-
-compound_statement_no_new_scope
-  :   T_LeftBrace T_RightBrace { $$ = new StmtBlock( new List<VarDecl*>, new List<Stmt*>); }
-  |   T_LeftBrace statement_list T_RightBrace { $$ = new StmtBlock(
-        new List<VarDecl*>, $2); }
-  ;
-
-statement_list
-  :   statement { $$ = new List<Stmt*>; $$->Append($1); }
-  |   statement_list statement { $$ = $1; $$->Append($2); }
-  ;
-
-expression_statement
-  :   T_Semicolon { $$ = new StmtBlock(
-        new List<VarDecl*>, new List<Stmt*>); }
-  |   expression T_Semicolon { $$ = $1; }
-  ;
 
 selection_statement
   :   T_If T_LeftParen expression T_RightParen selection_rest_statement {
@@ -622,17 +618,19 @@ selection_statement
   ; 
 
 selection_rest_statement
-  :   statement_with_scope T_Else statement_with_scope {
+  :   statement T_Else statement {
         $$ = new List<Stmt*>;
         $$->Append($1); $$->Append($3); }
-  |   statement_with_scope %prec NoElseToken { $$ = new List<Stmt*>;
+  |   statement %prec NoElseToken { $$ = new List<Stmt*>;
         $$->Append($1); }
   ;
 
 condition
   :   expression { $$ = $1; }
-  |   fully_specified_type T_Identifier T_Equal initializer {
+  |   type_specifier T_Identifier T_Equal initializer {
         $$ = new VarExpr(yylloc, new Identifier(yylloc, $2)); }
+  |   type_qualifier type_specifier T_Identifier T_Equal initializer {
+        $$ = new VarExpr(yylloc, new Identifier(yylloc, $3)); }
   ;
 
 switch_statement
@@ -646,15 +644,19 @@ switch_statement_list
 
 case_label
   :   T_Case expression T_Colon statement { List<Stmt*> *a = new List<Stmt*>;
-        a->Append((Stmt*)$4); $$ = new Case((IntConstant*)$2, a); }
+		a->Append($4);
+		$$ = new Case($2, a); }
   |   T_Default T_Colon statement { List<Stmt*> *a = new List<Stmt*>;
-        a->Append((Stmt*)$3); $$ = new Default(a); }
+		a->Append($3);
+		$$ = new Default(a);}
   ;
 
+
 iteration_statement
-  :   T_While T_LeftParen condition T_RightParen statement_no_new_scope { $$ = new WhileStmt((Expr*)$3, $5); }
-  |   T_Do statement_with_scope T_While T_LeftParen expression T_RightParen T_Semicolon { $$ = new DoWhileStmt( $2, (Expr*)$5); }
-  |   T_For T_LeftParen for_init_statement for_rest_statement T_RightParen statement_no_new_scope {
+  :   T_While T_LeftParen condition T_RightParen statement 	
+	{ $$ = new WhileStmt((Expr*)$3, $5); }
+  |   T_Do statement T_While T_LeftParen expression T_RightParen T_Semicolon 		{ $$ = new DoWhileStmt( $2, (Expr*)$5); }
+  |   T_For T_LeftParen for_init_statement for_rest_statement T_RightParen statement {
         Expr* a; Expr *b = NULL; a = (Expr*)($4->Nth(0));
         if($4->NumElements() == 2) b = (Expr*)($4->Nth(1));  
         $$ = new ForStmt((Expr*)$3, a, b, $6);}
@@ -676,27 +678,9 @@ for_rest_statement
   ;
 
 jump_statement
-  :   T_Break    T_Semicolon {$$ = new BreakStmt(@1);  }
-  |   T_Return T_Semicolon { $$ = new ReturnStmt(@1, new EmptyExpr()); }     
+  :   T_Return T_Semicolon { $$ = new ReturnStmt(@1, new EmptyExpr()); }  
   |   T_Return expression T_Semicolon { $$ = new ReturnStmt(@2,$2); }
-  ;
-
-translation_unit
-  :   external_declaration { $$ = new List<Decl*>();
-        $$->Append($1); }
-  |   translation_unit external_declaration { $$ = $1;
-        $$->Append($2); }
-  ;
-
-external_declaration
-  :   function_definition { $$ = $1; }
-  |   declaration { $$ = $1; }
-  ;
-
-function_definition
-  :   function_prototype compound_statement_no_new_scope {
-        $$ = $1; ((FnDecl*)$$)->SetFunctionBody($2);
-      }
+  |   T_Break    T_Semicolon {$$ = new BreakStmt(@1);  }
   ;
 
 %%
