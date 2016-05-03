@@ -6,15 +6,23 @@
 #include <vector>
 #include <map>
 using namespace std;
+class MyStack{
+   
+   protected:
+      vector<map<key,T> m> v;
+   public:
+      MyStack(map<key,T> sTable);   
+      void pushTable (map<key,T> a);
+      void popTable (map<key,T> a);
+      void lookupTable ();
 
+}
 class SymbolTable {
    protected:
-      vector<const value_type& val> v;
+      map<const value_type& val> m;
 
    public:
-      void pushTable (std::map a);
-      void popTable (std::map a);
-      void lookupTable ();
-      void addEle (const value_type& val );
-      void lookupEle();
+      SymbolTable();
+      void addEle (char key, T val ){ m.insert}
+      void lookupEle(){m.}
 }

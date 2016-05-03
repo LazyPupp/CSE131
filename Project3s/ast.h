@@ -40,11 +40,12 @@
 #include <stdlib.h>   // for NULL
 #include "location.h"
 #include <iostream>
-
+#include <symtable.h>
 using namespace std;
-
+/*
 class SymbolTable;
 class MyStack;
+*/
 class FnDecl;
 
 class Node  {
