@@ -16,7 +16,6 @@
 #include "ast.h"
 #include "list.h"
 #include "ast_expr.h"
-
 class Type;
 class TypeQualifier;
 class NamedType;
@@ -36,6 +35,8 @@ class Decl : public Node
     Identifier *GetIdentifier() const { return id; }
     friend ostream& operator<<(ostream& out, Decl *d) { return out << d->id; }
 
+    virtual Type* GetType() { return NULL; }
+
 };
 
 class VarDecl : public Decl 
@@ -53,6 +54,7 @@ class VarDecl : public Decl
     const char *GetPrintNameForNode() { return "VarDecl"; }
     void PrintChildren(int indentLevel);
     Type *GetType() const { return type; }
+    void Check();
 };
 
 class VarDeclError : public VarDecl

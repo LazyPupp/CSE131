@@ -4,8 +4,13 @@
  */
 #include "ast_decl.h"
 #include "ast_type.h"
-#include "ast_stmt.h"
-#include "symtable.h"        
+// #include "ast_stmt.h"
+#include "symtable.h" 
+#include <string>
+#include "errors.h"
+
+using namespace std;
+       
          
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
     Assert(n != NULL);
@@ -38,6 +43,24 @@ void VarDecl::PrintChildren(int indentLevel) {
    if (type) type->Print(indentLevel+1);
    if (id) id->Print(indentLevel+1);
    if (assignTo) assignTo->Print(indentLevel+1, "(initializer) ");
+}
+
+void VarDecl::Check() {
+    string vard = this->id->GetName();
+    Decl* hello = sTable->lookupTable(vard);
+
+    if( hello != NULL){
+        if(this->GetType() != hello->GetType()){
+            sTable->addEle(vard,hello);
+            ReportError::DeclConflict(this, hello); 
+        }
+        else{
+            ReportError::DeclConflict(this, hello);  
+        }
+    }
+    else{
+            sTable->addEle(vard,hello);
+    }
 }
 
 FnDecl::FnDecl(Identifier *n, Type *r, List<VarDecl*> *d) : Decl(n) {

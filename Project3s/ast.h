@@ -40,18 +40,18 @@
 #include <stdlib.h>   // for NULL
 #include "location.h"
 #include <iostream>
-#include <symtable.h>
+#include "symtable.h"
 using namespace std;
-/*
+
 class SymbolTable;
 class MyStack;
-*/
 class FnDecl;
 
 class Node  {
   protected:
     yyltype *location;
     Node *parent;
+    static SymbolTable *sTable;
 
   public:
     Node(yyltype loc);
