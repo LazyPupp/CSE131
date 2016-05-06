@@ -27,12 +27,12 @@ void Program::Check() {
      *      checking itself, which makes for a great use of inheritance
      *      and polymorphism in the node classes.
      */
-
+    sTable->pushTable();
     // sample test - not the actual working code
     // replace it with your own implementation
     if ( decls->NumElements() > 0 ) {
       for ( int i = 0; i < decls->NumElements(); ++i ) {
-        Decl *d = decls->Nth(i);
+        decls->Nth(i)->Check();
         /* !!! YOUR CODE HERE !!!
          * Basically you have to make sure that each declaration is 
          * semantically correct.

@@ -5,8 +5,9 @@
 #include "ast_decl.h"
 #include "ast_type.h"
 #include "ast_stmt.h"
-#include "symtable.h"        
-         
+#include "symtable.h"
+//NOT GIVEN        
+//#include "errors.h"         
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
     Assert(n != NULL);
     (id=n)->SetParent(this); 
@@ -32,7 +33,42 @@ VarDecl::VarDecl(Identifier *n, Type *t, TypeQualifier *tq, Expr *e) : Decl(n) {
     (typeq=tq)->SetParent(this);
     if (e) (assignTo=e)->SetParent(this);
 }
-  
+void VarDecl::Check() {
+    string vard = this->id->GetName();
+    Decl* hello = sTable->lookupTable(vard);
+
+    if( hello != NULL){
+        if(this->GetType() != hello->GetType()){
+            sTable->addEle(vard,hello);
+            ReportError::DeclConflict(this, hello); 
+        }
+        else{
+            ReportError::DeclConflict(this, hello);  
+        }
+    }
+    else{
+            sTable->addEle(vard,hello);
+    }
+}
+
+void FnDecl::Check() {
+    string vard = this->id->GetName();
+    Decl* hello = sTable->lookupTable(vard);
+
+    if( hello != NULL){
+        if(this->GetType() != hello->GetType()){
+            sTable->addEle(vard,hello);
+            ReportError::DeclConflict(this, hello); 
+        }
+        else{
+            ReportError::DeclConflict(this, hello);  
+        }
+    }
+    else{
+            sTable->addEle(vard,hello);
+    }
+}
+
 void VarDecl::PrintChildren(int indentLevel) { 
    if (typeq) typeq->Print(indentLevel+1);
    if (type) type->Print(indentLevel+1);
