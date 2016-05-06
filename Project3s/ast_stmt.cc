@@ -28,15 +28,24 @@ void Program::Check() {
      *      and polymorphism in the node classes.
      */
 
+    sTable->pushTable();
+	
     // sample test - not the actual working code
     // replace it with your own implementation
     if ( decls->NumElements() > 0 ) {
       for ( int i = 0; i < decls->NumElements(); ++i ) {
         Decl *d = decls->Nth(i);
-        /* !!! YOUR CODE HERE !!!
-         * Basically you have to make sure that each declaration is 
-         * semantically correct.
-         */
+//	string vard = this->id->GetName();
+	if( sTable->lookupTable(vard) != d){
+	  sTable->addEle(vard,d);
+	}
+	else{
+	   ReportError::DeclConflict(this,d);
+	}
+      }
+
+      for ( int i = 0; i < decls->NumElements(); ++i ) {
+        Decl *d = decls->Nth(i);
       }
     }
 }
