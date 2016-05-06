@@ -29,14 +29,15 @@ class SymbolTable{   //vect0or
    
    public:
       vector<map<string,Decl*>* > v;
-
+   //   SymbolTable();
       void pushTable();
 
       void popTable();
 
       Decl* lookupTable(string k);
 
-      bool addEle(string k, Decl* declare);
+      void addEle(string k, Decl* declare);
+      void popEle(string k);
 };
 /*
  * 

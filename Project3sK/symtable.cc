@@ -33,13 +33,17 @@ Decl* SymbolTable::lookupTable(string k){
 	return NULL;	
       }
 
-bool SymbolTable::addEle(string k, Decl * declare){
-	if(v[v.size()-1] -> end() != v[v.size()-1]->find(k) )
+void SymbolTable::addEle(string k, Decl * declare){
+/*	if(v[v.size()-1] -> end() == v[v.size()-1]->find(k) )
 	  return false;
 	else{
 	  v.back()->insert(pair<string, Decl*>(k,declare));
 	  return true;
-	}
+	}*/
+v.back()->insert(pair<string, Decl*>(k,declare));
+}
+void SymbolTable::popEle(string k){
+v.back()-> erase(k);
 }
 
 

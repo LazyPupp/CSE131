@@ -7,7 +7,8 @@
 #include "ast_stmt.h"
 #include "symtable.h"
 //NOT GIVEN        
-//#include "errors.h"         
+//#include "errors.h"
+#include <string>         
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
     Assert(n != NULL);
     (id=n)->SetParent(this); 
@@ -35,38 +36,76 @@ VarDecl::VarDecl(Identifier *n, Type *t, TypeQualifier *tq, Expr *e) : Decl(n) {
 }
 void VarDecl::Check() {
     string vard = this->id->GetName();
-    Decl* hello = sTable->lookupTable(vard);
+    VarDecl* hello = (VarDecl*)(sTable->lookupTable(vard));
 
     if( hello != NULL){
-        if(this->GetType() != hello->GetType()){
+printf("Found a vardecl \n");
+        if((string)(this->id->GetName()) != 
+                (string)(hello->GetIdentifier()->GetName())){
+//        printf(this->id->GetName());
+//        printf(hello->GetIdentifier()->GetName());
+        printf("If the ident aren't equal to each other /n");
+          if(this-> GetTypeQ() != NULL && this -> GetType() != NULL 
+              && this->id != NULL){
+            hello = new VarDecl(this->id, 
+                     this->GetType(), this->GetTypeQ(),this->GetExpr());
+           }else if (this->GetType() != NULL && this->id != NULL)
+           {
+             hello = new VarDecl(this->id, this->GetType(), this-> GetExpr());   
+           }else if (this->id != NULL && this->GetTypeQ() != NULL){
+             hello = new VarDecl(this->id, this->GetTypeQ(),this->GetExpr());
+           }else{
+             hello = new VarDecl();
+           }
+
             sTable->addEle(vard,hello);
-            ReportError::DeclConflict(this, hello); 
+            //ReportError::DeclConflict(this, hello); 
         }
         else{
+        printf("If Identifier is equal to each other \n");
             ReportError::DeclConflict(this, hello);  
+            sTable->popEle(vard);
+          if(this-> GetTypeQ() != NULL && this -> GetType() != NULL 
+              && this->id != NULL){
+            hello = new VarDecl(this->id, 
+                     this->GetType(), this->GetTypeQ(),this->GetExpr());
+           }else if (this->GetType() != NULL && this->id != NULL)
+           {
+             hello = new VarDecl(this->id, this->GetType(), this-> GetExpr());   
+           }else if (this->id != NULL && this->GetTypeQ() != NULL){
+             hello = new VarDecl(this->id, this->GetTypeQ(),this->GetExpr());
+           }else{
+             hello = new VarDecl();
+           }
+
+            sTable->addEle(vard, hello);
+
         }
     }
     else{
+printf("Creating new map variable \n");
+           // hello->GetIdentifier()->SetName() = this->id->GetName():
+           // hello->GetType() 
+           if(this-> GetTypeQ() != NULL && this -> GetType() != NULL 
+              && this->id != NULL){
+            hello = new VarDecl(this->id, 
+                     this->GetType(), this->GetTypeQ(),this->GetExpr());
+           }else if (this->GetType() != NULL && this->id != NULL)
+           {
+             hello = new VarDecl(this->id, this->GetType(), this-> GetExpr());   
+           }else if (this->id != NULL && this->GetTypeQ() != NULL){
+             hello = new VarDecl(this->id, this->GetTypeQ(),this->GetExpr());
+           }else{
+             hello = new VarDecl();
+           }
             sTable->addEle(vard,hello);
     }
 }
 
 void FnDecl::Check() {
+    sTable->pushTable();
     string vard = this->id->GetName();
     Decl* hello = sTable->lookupTable(vard);
-
-    if( hello != NULL){
-        if(this->GetType() != hello->GetType()){
-            sTable->addEle(vard,hello);
-            ReportError::DeclConflict(this, hello); 
-        }
-        else{
-            ReportError::DeclConflict(this, hello);  
-        }
-    }
-    else{
-            sTable->addEle(vard,hello);
-    }
 }
 
 void VarDecl::PrintChildren(int indentLevel) { 
