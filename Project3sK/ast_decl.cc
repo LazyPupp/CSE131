@@ -45,78 +45,35 @@ void VarDecl::Check() {
      }else{
         curScope->insert(pair<string,Decl*> (vard,this) );
      }
-/*   string vard = this->id->GetName();
-    VarDecl* hello = (VarDecl*)(sTable->lookupTable(vard));
-
-    if( hello != NULL){
-printf("Found a vardecl \n");
-        if((string)(this->id->GetName()) != 
-                (string)(hello->GetIdentifier()->GetName())){
-//        printf(this->id->GetName());
-//        printf(hello->GetIdentifier()->GetName());
-        printf("If the ident aren't equal to each other /n");
-          if(this-> GetTypeQ() != NULL && this -> GetType() != NULL 
-              && this->id != NULL){
-            hello = new VarDecl(this->id, 
-                     this->GetType(), this->GetTypeQ(),this->GetExpr());
-           }else if (this->GetType() != NULL && this->id != NULL)
-           {
-             hello = new VarDecl(this->id, this->GetType(), this-> GetExpr());   
-           }else if (this->id != NULL && this->GetTypeQ() != NULL){
-             hello = new VarDecl(this->id, this->GetTypeQ(),this->GetExpr());
-           }else{
-             hello = new VarDecl();
-           }
-
-            sTable->addEle(vard,hello);
-            //ReportError::DeclConflict(this, hello); 
-        }
-        else{
-        printf("If Identifier is equal to each other \n");
-            ReportError::DeclConflict(this, hello);  
-            sTable->popEle(vard);
-          if(this-> GetTypeQ() != NULL && this -> GetType() != NULL 
-              && this->id != NULL){
-            hello = new VarDecl(this->id, 
-                     this->GetType(), this->GetTypeQ(),this->GetExpr());
-           }else if (this->GetType() != NULL && this->id != NULL)
-           {
-             hello = new VarDecl(this->id, this->GetType(), this-> GetExpr());   
-           }else if (this->id != NULL && this->GetTypeQ() != NULL){
-             hello = new VarDecl(this->id, this->GetTypeQ(),this->GetExpr());
-           }else{
-             hello = new VarDecl();
-           }
-
-            sTable->addEle(vard, hello);
-
-        }
-    }
-    else{
-printf("Creating new map variable \n");
-           // hello->GetIdentifier()->SetName() = this->id->GetName():
-           // hello->GetType() 
-           if(this-> GetTypeQ() != NULL && this -> GetType() != NULL 
-              && this->id != NULL){
-            hello = new VarDecl(this->id, 
-                     this->GetType(), this->GetTypeQ(),this->GetExpr());
-           }else if (this->GetType() != NULL && this->id != NULL)
-           {
-             hello = new VarDecl(this->id, this->GetType(), this-> GetExpr());   
-           }else if (this->id != NULL && this->GetTypeQ() != NULL){
-             hello = new VarDecl(this->id, this->GetTypeQ(),this->GetExpr());
-           }else{
-             hello = new VarDecl();
-           }
-            sTable->addEle(vard,hello);
-    }*/
-}
+ }
 
 void FnDecl::Check() {
 //    sTable->pushTable();
-//    string vard = this->id->GetName();
-//    Decl* hello = sTable->lookupTable(vard);
-
+      
+      body->Check();
+      
+      //body ->Nth(0)->Check();
+//      string vard = this->id->GetName();
+//      map<string,Decl*>* curScope = sTable->v.back();
+    /*  if(formals->NumElements()>0){
+         for(int i = 0; i< formals->NumElements(); ++i){
+            formals->Nth(i)->Check();
+            //printf("patricksucks \n");
+         }
+      }*/
+    // printf(this->id->GetName());
+//printing out the function name
+/*     if(curScope->end() != curScope->find(vard))
+     {
+        printf("cool \n");
+        ReportError::DeclConflict(this, curScope->at(vard));
+        curScope->erase(curScope->find(vard));
+	curScope->insert(pair<string,Decl*>(vard,this)); 
+     }else{
+        printf("bad \n");
+        curScope->insert(pair<string,Decl*> (vard,this) );
+     }
+*/
 
 }
 

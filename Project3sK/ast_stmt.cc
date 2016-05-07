@@ -55,8 +55,23 @@ void StmtBlock::PrintChildren(int indentLevel) {
     stmts->PrintAll(indentLevel+1);
 }
 void StmtBlock::Check(){
-   std::map<string,Decl*> *m = new std::map<string,Decl*>();
-   sTable->v.push_back(m);
+   std::map<string,Decl*> *mq = new std::map<string,Decl*>();
+   sTable->v.push_back(mq);
+
+   FnDecl f;
+   List<VarDecl*> *formals = f.GetFormals(); 
+   if(formals->NumElements()>0){
+     for(int i = 0; i< formals->NumElements(); ++i){
+         formals->Nth(i)->Check();
+     }
+   }
+
+   if(stmts->NumElements()>0){
+     for(int i = 0; i< stmts->NumElements(); ++i){
+         stmts->Nth(i)->Check();
+     }
+   }
+  sTable->v.pop_back();
 }
 
 
@@ -67,6 +82,11 @@ DeclStmt::DeclStmt(Decl *d) {
 
 void DeclStmt::PrintChildren(int indentLevel) {
     decl->Print(indentLevel+1);
+}
+
+void DeclStmt::Check(){
+   decl -> Check();
+
 }
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) { 

@@ -51,7 +51,8 @@ class StmtBlock : public Stmt
     
   public:
     StmtBlock(List<VarDecl*> *variableDeclarations, List<Stmt*> *statements);
-    const char *GetPrintNameForNode() { return "StmtBlock"; }
+    //FnDecl *f: 
+   const char *GetPrintNameForNode() { return "StmtBlock"; }
     void PrintChildren(int indentLevel);
     void Check();
 };
@@ -64,7 +65,7 @@ class DeclStmt: public Stmt
     DeclStmt(Decl *d);
     const char *GetPrintNameForNode() { return "DeclStmt"; }
     void PrintChildren(int indentLevel);
-    void Check(){};
+    void Check();
 
 
 };
