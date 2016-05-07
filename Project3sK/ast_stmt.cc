@@ -31,6 +31,7 @@ void Program::Check() {
     map<string,Decl*>* m;
     m = new map<string,Decl*>();
     sTable->v.push_back(m);
+    
     // sample test - not the actual working code
     // replace it with your own implementation
     if ( decls->NumElements() > 0 ) {
@@ -55,17 +56,30 @@ void StmtBlock::PrintChildren(int indentLevel) {
     stmts->PrintAll(indentLevel+1);
 }
 void StmtBlock::Check(){
+  /*
    std::map<string,Decl*> *mq = new std::map<string,Decl*>();
    sTable->v.push_back(mq);
+  */
+  // FnDecl *f;
+  // FnDecl fa;
+  /* if (f->fa.GetType() != NULL)
+   {
+      f = new FnDecl(fa.GetIdentifier(), f->FnDecl::GetType(),f->FnDecl::GetFormals());
+   }else if (f->FnDecl::GetType() != NULL && f->FnDecl::GetTypeQ() != NULL)
+   {
+      f = 
+       new FnDecl(f->FnDecl::GetIdentifier(), f->FnDecl::GetType(),f->FnDecl::GetTypeQ(),f->FnDecl::GetFormals());
 
-   FnDecl f;
-   List<VarDecl*> *formals = f.GetFormals(); 
-   if(formals->NumElements()>0){
-     for(int i = 0; i< formals->NumElements(); ++i){
-         formals->Nth(i)->Check();
+   }else{
+     f = new FnDecl();
+   }*/
+   //decls = faGetFormals(); 
+  /* if(decls->NumElements()>0){
+     for(int i = 0; i< decls->NumElements(); ++i){
+         decls->Nth(i)->Check();
      }
    }
-
+*/
    if(stmts->NumElements()>0){
      for(int i = 0; i< stmts->NumElements(); ++i){
          stmts->Nth(i)->Check();

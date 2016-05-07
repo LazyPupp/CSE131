@@ -49,32 +49,36 @@ void VarDecl::Check() {
 
 void FnDecl::Check() {
 //    sTable->pushTable();
-      
-      body->Check();
-      
-      //body ->Nth(0)->Check();
-//      string vard = this->id->GetName();
-//      map<string,Decl*>* curScope = sTable->v.back();
-    /*  if(formals->NumElements()>0){
-         for(int i = 0; i< formals->NumElements(); ++i){
-            formals->Nth(i)->Check();
-            //printf("patricksucks \n");
-         }
-      }*/
-    // printf(this->id->GetName());
-//printing out the function name
-/*     if(curScope->end() != curScope->find(vard))
+
+      string vard = this->id->GetName();
+      map<string,Decl*>* curScope = sTable->v.back();
+    
+    //printing out the function name
+   if(curScope->end() != curScope->find(vard))
      {
-        printf("cool \n");
+        //printf("cool \n");
         ReportError::DeclConflict(this, curScope->at(vard));
         curScope->erase(curScope->find(vard));
 	curScope->insert(pair<string,Decl*>(vard,this)); 
      }else{
-        printf("bad \n");
+        //printf("bad \n");
         curScope->insert(pair<string,Decl*> (vard,this) );
      }
-*/
 
+     std::map<string,Decl*> *m = new std::map<string,Decl*>();
+     sTable->v.push_back(m);
+            
+      //body->Check();
+      
+      //body ->Nth(0)->Check();
+      if(formals->NumElements()>0){
+         for(int i = 0; i< formals->NumElements(); ++i){
+            formals->Nth(i)->Check();
+            //printf("patricksucks \n");
+         }
+      }
+     body->Check();
+    // printf(this->id->GetName());
 }
 
 void VarDecl::PrintChildren(int indentLevel) { 

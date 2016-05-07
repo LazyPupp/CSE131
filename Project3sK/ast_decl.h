@@ -38,6 +38,7 @@ class Decl : public Node
     friend ostream& operator<<(ostream& out, Decl *d) { return out << d->id; }
     virtual void Check(){};
     virtual Type *GetType(){return NULL;}
+    virtual TypeQualifier *GetTypeQ() {return NULL;}
 };
 
 class VarDecl : public Decl 
@@ -85,6 +86,7 @@ class FnDecl : public Decl
     
     void Check();
     Type *GetType() const { return returnType; }
+    TypeQualifier *GetTypeQ() const {return returnTypeq;}
     List<VarDecl*> *GetFormals() {return formals;}
 };
 
