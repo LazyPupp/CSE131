@@ -8,6 +8,7 @@
 #include "ast_expr.h"
 #include "errors.h"
 #include "symtable.h"
+//using namespace std;
 
 Program::Program(List<Decl*> *d) {
     Assert(d != NULL);
@@ -53,6 +54,11 @@ void StmtBlock::PrintChildren(int indentLevel) {
     decls->PrintAll(indentLevel+1);
     stmts->PrintAll(indentLevel+1);
 }
+void StmtBlock::Check(){
+   std::map<string,Decl*> *m = new std::map<string,Decl*>();
+   sTable->v.push_back(m);
+}
+
 
 DeclStmt::DeclStmt(Decl *d) {
     Assert(d != NULL);
