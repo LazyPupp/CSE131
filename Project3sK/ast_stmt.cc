@@ -27,7 +27,9 @@ void Program::Check() {
      *      checking itself, which makes for a great use of inheritance
      *      and polymorphism in the node classes.
      */
-    sTable->pushTable();
+    map<string,Decl*>* m;
+    m = new map<string,Decl*>();
+    sTable->v.push_back(m);
     // sample test - not the actual working code
     // replace it with your own implementation
     if ( decls->NumElements() > 0 ) {

@@ -52,7 +52,7 @@ class Node  {
     yyltype *location;
     Node *parent;
     static SymbolTable *sTable;
-
+    
   public:
     Node(yyltype loc);
     Node();

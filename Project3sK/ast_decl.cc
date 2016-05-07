@@ -35,7 +35,17 @@ VarDecl::VarDecl(Identifier *n, Type *t, TypeQualifier *tq, Expr *e) : Decl(n) {
     if (e) (assignTo=e)->SetParent(this);
 }
 void VarDecl::Check() {
-    string vard = this->id->GetName();
+     string vard = this->id->GetName();
+     map<string,Decl*>* curScope = sTable-> v.back();
+     if(curScope->end() != curScope->find(vard))
+     {
+        ReportError::DeclConflict(this, curScope->at(vard));
+        curScope->erase(curScope->find(vard));
+	curScope->insert(pair<string,Decl*>(vard,this)); 
+     }else{
+        curScope->insert(pair<string,Decl*> (vard,this) );
+     }
+/*   string vard = this->id->GetName();
     VarDecl* hello = (VarDecl*)(sTable->lookupTable(vard));
 
     if( hello != NULL){
@@ -99,13 +109,15 @@ printf("Creating new map variable \n");
              hello = new VarDecl();
            }
             sTable->addEle(vard,hello);
-    }
+    }*/
 }
 
 void FnDecl::Check() {
-    sTable->pushTable();
-    string vard = this->id->GetName();
-    Decl* hello = sTable->lookupTable(vard);
+//    sTable->pushTable();
+//    string vard = this->id->GetName();
+//    Decl* hello = sTable->lookupTable(vard);
+
+
 }
 
 void VarDecl::PrintChildren(int indentLevel) { 
