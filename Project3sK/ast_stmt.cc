@@ -56,10 +56,10 @@ void StmtBlock::PrintChildren(int indentLevel) {
     stmts->PrintAll(indentLevel+1);
 }
 void StmtBlock::Check(){
-  /*
+  
    std::map<string,Decl*> *mq = new std::map<string,Decl*>();
    sTable->v.push_back(mq);
-  */
+  
   // FnDecl *f;
   // FnDecl fa;
   /* if (f->fa.GetType() != NULL)
@@ -87,7 +87,24 @@ void StmtBlock::Check(){
    }
   sTable->v.pop_back();
 }
+void StmtBlock::Check(List<VarDecl*> *formals){
+   std::map<string,Decl*> *mq = new std::map<string,Decl*>();
+   sTable->v.push_back(mq);
 
+   decls = formals;
+   if(decls->NumElements()>0){
+     for(int i = 0; i< decls->NumElements(); ++i){
+         decls->Nth(i)->Check();
+     }
+  }
+  if(stmts->NumElements()>0){
+     for(int i = 0; i< stmts->NumElements(); ++i){
+         stmts->Nth(i)->Check();
+     }
+   }
+  sTable->v.pop_back();
+
+}
 
 DeclStmt::DeclStmt(Decl *d) {
     Assert(d != NULL);
@@ -108,7 +125,9 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
     (test=t)->SetParent(this); 
     (body=b)->SetParent(this);
 }
-
+void ConditionalStmt::Check(){
+   body->Check();
+}
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) { 
     Assert(i != NULL && t != NULL && b != NULL);
     (init=i)->SetParent(this);

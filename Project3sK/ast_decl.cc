@@ -65,19 +65,18 @@ void FnDecl::Check() {
         curScope->insert(pair<string,Decl*> (vard,this) );
      }
 
-     std::map<string,Decl*> *m = new std::map<string,Decl*>();
-     sTable->v.push_back(m);
-            
-      //body->Check();
+   //  std::map<string,Decl*> *m = new std::map<string,Decl*>();
+   //  sTable->v.push_back(m);
+      StmtBlock *s = (StmtBlock *)body;      
+      s->Check(formals);
       
-      //body ->Nth(0)->Check();
-      if(formals->NumElements()>0){
+      /*if(formals->NumElements()>0){
          for(int i = 0; i< formals->NumElements(); ++i){
             formals->Nth(i)->Check();
             //printf("patricksucks \n");
          }
       }
-     body->Check();
+     body->Check();*/
     // printf(this->id->GetName());
 }
 

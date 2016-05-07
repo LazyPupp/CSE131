@@ -55,6 +55,7 @@ class StmtBlock : public Stmt
    const char *GetPrintNameForNode() { return "StmtBlock"; }
     void PrintChildren(int indentLevel);
     void Check();
+    void Check(List<VarDecl*> *formals);
 };
 class DeclStmt: public Stmt 
 {
@@ -79,7 +80,7 @@ class ConditionalStmt : public Stmt
   public:
     ConditionalStmt() : Stmt(), test(NULL), body(NULL) {}
     ConditionalStmt(Expr *testExpr, Stmt *body);
-    void Check(){};
+    void Check();
 
 
 };
@@ -89,6 +90,8 @@ class LoopStmt : public ConditionalStmt
   public:
     LoopStmt(Expr *testExpr, Stmt *body)
             : ConditionalStmt(testExpr, body) {}
+    void Check(){};
+
 };
 
 class ForStmt : public LoopStmt 
@@ -100,6 +103,7 @@ class ForStmt : public LoopStmt
     ForStmt(Expr *init, Expr *test, Expr *step, Stmt *body);
     const char *GetPrintNameForNode() { return "ForStmt"; }
     void PrintChildren(int indentLevel);
+    void Check(){};
 
 };
 
@@ -109,6 +113,7 @@ class WhileStmt : public LoopStmt
     WhileStmt(Expr *test, Stmt *body) : LoopStmt(test, body) {}
     const char *GetPrintNameForNode() { return "WhileStmt"; }
     void PrintChildren(int indentLevel);
+    void Check(){};
 
 };
 
@@ -122,6 +127,7 @@ class IfStmt : public ConditionalStmt
     IfStmt(Expr *test, Stmt *thenBody, Stmt *elseBody);
     const char *GetPrintNameForNode() { return "IfStmt"; }
     void PrintChildren(int indentLevel);
+    void Check(){};
 
 };
 
@@ -130,6 +136,8 @@ class IfStmtExprError : public IfStmt
   public:
     IfStmtExprError() : IfStmt() { yyerror(this->GetPrintNameForNode()); }
     const char *GetPrintNameForNode() { return "IfStmtExprError"; }
+    void Check(){};
+
 };
 
 class BreakStmt : public Stmt 
@@ -184,6 +192,8 @@ class Case : public SwitchLabel
     Case() : SwitchLabel() {}
     Case(Expr *label, Stmt *stmt) : SwitchLabel(label, stmt) {}
     const char *GetPrintNameForNode() { return "Case"; }
+    void Check(){};
+
 };
 
 class Default : public SwitchLabel
@@ -191,6 +201,8 @@ class Default : public SwitchLabel
   public:
     Default(Stmt *stmt) : SwitchLabel(stmt) {}
     const char *GetPrintNameForNode() { return "Default"; }
+    void Check(){};
+
 };
 
 class SwitchStmt : public Stmt
@@ -214,6 +226,8 @@ class SwitchStmtError : public SwitchStmt
   public:
     SwitchStmtError(const char * msg) { yyerror(msg); }
     const char *GetPrintNameForNode() { return "SwitchStmtError"; }
+    void Check(){};
+
 };
 
 #endif
