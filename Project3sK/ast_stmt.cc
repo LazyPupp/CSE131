@@ -125,9 +125,7 @@ ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) {
     (test=t)->SetParent(this); 
     (body=b)->SetParent(this);
 }
-void ConditionalStmt::Check(){
-   body->Check();
-}
+
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) { 
     Assert(i != NULL && t != NULL && b != NULL);
     (init=i)->SetParent(this);
@@ -161,7 +159,20 @@ void IfStmt::PrintChildren(int indentLevel) {
     if (elseBody) elseBody->Print(indentLevel+1, "(else) ");
 }
 
+void IfStmt::Check(){
+ /* string vard = this->id->GetName();
+  //map<string,Decl*>* curScope = sTable ->v.back();
+  i = v.size()-1;
+  while(i>=0){
+    if(v[i]->end() != v[i]->find(vard)){
+       
+    }
+    i--;
+  }*/
+  test -> Check();
+  
 
+}
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) { 
     expr = e;
     if (e != NULL) expr->SetParent(this);

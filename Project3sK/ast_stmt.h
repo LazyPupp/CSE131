@@ -80,7 +80,7 @@ class ConditionalStmt : public Stmt
   public:
     ConditionalStmt() : Stmt(), test(NULL), body(NULL) {}
     ConditionalStmt(Expr *testExpr, Stmt *body);
-    void Check();
+    void Check(){};
 
 
 };

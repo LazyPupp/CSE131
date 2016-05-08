@@ -280,14 +280,14 @@ void ArrayAccess::Check(){
      base->Check();
      VarExpr *v = dynamic_cast<VarExpr *>(base);
      ArrayType *a = dynamic_cast<ArrayType *>(v->retType);
-     if((a->GetElemType() != Type::intType)&&
-        (a->GetElemType() != Type::floatType)&&
-        (a->GetElemType() != Type::boolType)&&
-        (a->GetElemType() != Type::uintType)&&
-        (a->GetElemType() != Type::voidType)&&
-        (a->GetElemType() != Type::mat2Type)&&
-        (a->GetElemType() != Type::mat3Type)&&
-        (a->GetElemType() != Type::mat4Type))
+     if((a->GetElemType() == Type::errorType))
+//        (a->GetElemType() != Type::floatType)&&
+//        (a->GetElemType() != Type::boolType)&&
+//        (a->GetElemType() != Type::uintType)&&
+//        (a->GetElemType() != Type::voidType)&&
+//        (a->GetElemType() != Type::mat2Type)&&
+//        (a->GetElemType() != Type::mat3Type)&&
+//        (a->GetElemType() != Type::mat4Type))
      {
 //        cout<<base->retType;
 //        cout<< "\n";
@@ -431,40 +431,6 @@ void Call::Check(){
     ReportError::IdentifierNotDeclared(field, LookingForVariable);
     this->retType= Type::errorType;
   }
-
-  //this->setType();
-
-/* Decl* d;
-  bool found = false;
-
-  map<string, Decl*> *currTable;
-
-  for(int i = 0; i < tables->NumElements(); i++){
-
-    currTable = tables->Nth(i);
-    map<string, Decl*>::iterator it = currTable->find(field->getName());
-
-    if( it != currTable->end() ){
-
-    if( static_cast<int>(actuals->size()) > ( (currTable->at(field->getName()))->NumElements() ) ){
-    ReportError::ExtraFormals(this->GetIdentifier(), static_cast<int>(actuals->size()),currTable->at(field->getName())->NumElements() );
-    }
-    if(){	
-	ReportError::LessFormals(this->GetIdentifier(), static_cast<int>(actuals->size()),currTable->at(field->getName())->NumElements() );
-    } 
-
-
-      d = it->second;
-      found = true;
-    }
-
-  }
-
-  if(!found){
-    ReportError::IdentifierNotDeclared(field, LookingForVariable);
-  }
-
-  this->setType();*/
 
 }
 
