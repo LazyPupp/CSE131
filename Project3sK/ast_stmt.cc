@@ -31,6 +31,7 @@ void Program::Check() {
     map<string,Decl*>* m;
     m = new map<string,Decl*>();
     sTable->v.push_back(m);
+    
     // sample test - not the actual working code
     // replace it with your own implementation
     if ( decls->NumElements() > 0 ) {
@@ -55,10 +56,55 @@ void StmtBlock::PrintChildren(int indentLevel) {
     stmts->PrintAll(indentLevel+1);
 }
 void StmtBlock::Check(){
-   std::map<string,Decl*> *m = new std::map<string,Decl*>();
-   sTable->v.push_back(m);
-}
+  
+   std::map<string,Decl*> *mq = new std::map<string,Decl*>();
+   sTable->v.push_back(mq);
+  
+  // FnDecl *f;
+  // FnDecl fa;
+  /* if (f->fa.GetType() != NULL)
+   {
+      f = new FnDecl(fa.GetIdentifier(), f->FnDecl::GetType(),f->FnDecl::GetFormals());
+   }else if (f->FnDecl::GetType() != NULL && f->FnDecl::GetTypeQ() != NULL)
+   {
+      f = 
+       new FnDecl(f->FnDecl::GetIdentifier(), f->FnDecl::GetType(),f->FnDecl::GetTypeQ(),f->FnDecl::GetFormals());
 
+   }else{
+     f = new FnDecl();
+   }*/
+   //decls = faGetFormals(); 
+  /* if(decls->NumElements()>0){
+     for(int i = 0; i< decls->NumElements(); ++i){
+         decls->Nth(i)->Check();
+     }
+   }
+*/
+   if(stmts->NumElements()>0){
+     for(int i = 0; i< stmts->NumElements(); ++i){
+         stmts->Nth(i)->Check();
+     }
+   }
+  sTable->v.pop_back();
+}
+void StmtBlock::Check(List<VarDecl*> *formals){
+   std::map<string,Decl*> *mq = new std::map<string,Decl*>();
+   sTable->v.push_back(mq);
+
+   decls = formals;
+   if(decls->NumElements()>0){
+     for(int i = 0; i< decls->NumElements(); ++i){
+         decls->Nth(i)->Check();
+     }
+  }
+  if(stmts->NumElements()>0){
+     for(int i = 0; i< stmts->NumElements(); ++i){
+         stmts->Nth(i)->Check();
+     }
+   }
+  sTable->v.pop_back();
+
+}
 
 DeclStmt::DeclStmt(Decl *d) {
     Assert(d != NULL);
@@ -69,12 +115,19 @@ void DeclStmt::PrintChildren(int indentLevel) {
     decl->Print(indentLevel+1);
 }
 
+void DeclStmt::Check(){
+   decl -> Check();
+
+}
+
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) { 
     Assert(t != NULL && b != NULL);
     (test=t)->SetParent(this); 
     (body=b)->SetParent(this);
 }
-
+void ConditionalStmt::Check(){
+   body->Check();
+}
 ForStmt::ForStmt(Expr *i, Expr *t, Expr *s, Stmt *b): LoopStmt(t, b) { 
     Assert(i != NULL && t != NULL && b != NULL);
     (init=i)->SetParent(this);
