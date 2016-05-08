@@ -274,7 +274,55 @@ void ArrayAccess::PrintChildren(int indentLevel) {
     base->Print(indentLevel+1);
     subscript->Print(indentLevel+1, "(subscript) ");
   }
-     
+    
+void ArrayAccess::Check(){
+  if(base){
+     base->Check();
+     VarExpr *v = dynamic_cast<VarExpr *>(base);
+     ArrayType *a = dynamic_cast<ArrayType *>(v->retType);
+     if((a->GetElemType() != Type::intType)&&
+        (a->GetElemType() != Type::floatType)&&
+        (a->GetElemType() != Type::boolType)&&
+        (a->GetElemType() != Type::uintType)&&
+        (a->GetElemType() != Type::voidType)&&
+        (a->GetElemType() != Type::mat2Type)&&
+        (a->GetElemType() != Type::mat3Type)&&
+        (a->GetElemType() != Type::mat4Type))
+     {
+//        cout<<base->retType;
+//        cout<< "\n";
+       // cout<<a->GetElemType();
+        ReportError::NotAnArray(v->GetIdentifier());
+        this-> retType = Type::errorType;
+     }else{
+        this->retType = a->GetElemType(); 
+     }
+  }
+
+/*
+  bool found = false;
+
+  map<string, Decl*> *currTable;
+
+  for(int i = 0; i < tables->NumElements(); i++){
+
+    currTable = tables->Nth(i);
+    map<string, Decl*>::iterator it = currTable->find(id->getName());
+
+    if( it != currTable->end() ){
+      d = it->second;
+      found = true;
+    }
+
+  }
+
+  if(!found){
+    ReportError::IdentifierNotDeclared(id, LookingForVariable);
+  }
+
+  this->setType();*/
+
+} 
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
   : LValue(b? Join(b->GetLocation(), f->GetLocation()) : *f->GetLocation()) {
     Assert(f != NULL); // b can be be NULL (just means no explicit base)
