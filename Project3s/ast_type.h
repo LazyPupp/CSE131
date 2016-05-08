@@ -33,18 +33,19 @@ class TypeQualifier : public Node
     void PrintChildren(int indentLevel);
 };
 
+
 class Type : public Node 
 {
   protected:
     char *typeName;
 
   public :
-    static Type *intType, *uintType,*floatType, *boolType, *voidType,
+    static Type *intType, *uintType, *floatType, *boolType, *voidType,
                 *vec2Type, *vec3Type, *vec4Type,
                 *mat2Type, *mat3Type, *mat4Type,
-                *ivec2Type, *ivec3Type, *ivec4Type,
-                *bvec2Type, *bvec3Type, *bvec4Type, 
-                *uvec2Type, *uvec3Type,*uvec4Type, 
+		 *ivec2Type, *ivec3Type, *ivec4Type,
+		 *bvec2Type, *bvec3Type, *bvec4Type, 
+		 *uvec2Type, *uvec3Type,*uvec4Type,
                 *errorType;
 
     Type(yyltype loc) : Node(loc) {}
@@ -62,7 +63,6 @@ class Type : public Node
     bool IsMatrix();
     bool IsError();
 };
-
 
 class NamedType : public Type 
 {
@@ -82,14 +82,13 @@ class ArrayType : public Type
   protected:
     Type *elemType;
     int   elemCount;
-
   public:
+    ArrayType(yyltype loc, Type *elemType);
     ArrayType(yyltype loc, Type *elemType, int elemCount);
-    
     const char *GetPrintNameForNode() { return "ArrayType"; }
     void PrintChildren(int indentLevel);
     void PrintToStream(ostream& out) { out << elemType << "[]"; }
-    Type *GetElemType() {return elemType;}
+   Type *GetElemType() {return elemType;}
 };
 
  

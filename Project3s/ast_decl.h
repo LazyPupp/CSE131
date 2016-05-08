@@ -16,6 +16,8 @@
 #include "ast.h"
 #include "list.h"
 #include "ast_expr.h"
+#include <map>
+
 class Type;
 class TypeQualifier;
 class NamedType;
@@ -32,10 +34,12 @@ class Decl : public Node
   public:
     Decl() : id(NULL) {}
     Decl(Identifier *name);
-    Identifier *GetIdentifier() const { return id; }
     friend ostream& operator<<(ostream& out, Decl *d) { return out << d->id; }
+    Identifier getId(){ return *(this->id); }
+	Identifier *GetIdentifier() const { return id; }
 
-    virtual Type* GetType() { return NULL; }
+    virtual void Check() {}
+    virtual Type* getType() { return NULL; }
 
 };
 
@@ -47,14 +51,17 @@ class VarDecl : public Decl
     Expr *assignTo;
     
   public:
+  //  VarDecl() : type(NULL) {}
+   // VarDecl(Identifier *name, Type *type);
     VarDecl() : type(NULL), typeq(NULL), assignTo(NULL) {}
     VarDecl(Identifier *name, Type *type, Expr *assignTo = NULL);
     VarDecl(Identifier *name, TypeQualifier *typeq, Expr *assignTo = NULL);
     VarDecl(Identifier *name, Type *type, TypeQualifier *typeq, Expr *assignTo = NULL);
     const char *GetPrintNameForNode() { return "VarDecl"; }
     void PrintChildren(int indentLevel);
-    Type *GetType() const { return type; }
+
     void Check();
+    Type* getType() { return type; }
 };
 
 class VarDeclError : public VarDecl
@@ -71,8 +78,10 @@ class FnDecl : public Decl
     Type *returnType;
     TypeQualifier *returnTypeq;
     Stmt *body;
+    int countFormals;
     
   public:
+ //   FnDecl() : Decl(), formals(NULL), returnType(NULL), body(NULL) {}
     FnDecl() : Decl(), formals(NULL), returnType(NULL), returnTypeq(NULL), body(NULL) {}
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     FnDecl(Identifier *name, Type *returnType, TypeQualifier *returnTypeq, List<VarDecl*> *formals);
@@ -80,8 +89,10 @@ class FnDecl : public Decl
     const char *GetPrintNameForNode() { return "FnDecl"; }
     void PrintChildren(int indentLevel);
 
-    Type *GetType() const { return returnType; }
+    void Check();
+    Type* getType() { return returnType; }
     List<VarDecl*> *GetFormals() {return formals;}
+    
 };
 
 class FormalsError : public FnDecl

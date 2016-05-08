@@ -7,7 +7,18 @@
 #include "ast_decl.h"
 #include "ast_expr.h"
 #include "errors.h"
-#include "symtable.h"
+
+#include <map>
+#include <string>
+using std::map;
+using std::string;
+
+#include <typeinfo>
+
+List< std::map<string, Decl*>*> *tables = new List< std::map<string, Decl*>*>();
+bool escapeAllowed = false;
+bool retFound = false;
+Type *currRetType = NULL;
 
 Program::Program(List<Decl*> *d) {
     Assert(d != NULL);
@@ -28,26 +39,28 @@ void Program::Check() {
      *      and polymorphism in the node classes.
      */
 
-    sTable->pushTable();
-	
     // sample test - not the actual working code
     // replace it with your own implementation
-    if ( decls->NumElements() > 0 ) {
-      for ( int i = 0; i < decls->NumElements(); ++i ) {
-        Decl *d = decls->Nth(i);
-//	string vard = this->id->GetName();
-	if( sTable->lookupTable(vard) != d){
-	  sTable->addEle(vard,d);
-	}
-	else{
-	   ReportError::DeclConflict(this,d);
-	}
-      }
+    // if ( decls->NumElements() >= 2 ) {
+    //      Decl *newDecl  = decls->Nth(1);
+    //      Decl *prevDecl = decls->Nth(0);
+    //      ReportError::DeclConflict(newDecl, prevDecl);
+    // }
 
-      for ( int i = 0; i < decls->NumElements(); ++i ) {
-        Decl *d = decls->Nth(i);
-      }
+    //List of symbol tables
+    //List< map<string, Decl*>* > symbolTables;
+
+    //Initial symbol table
+    map<string, Decl*> *symbolTable = new map<string, Decl*>;
+    tables->InsertAt(symbolTable, 0);
+
+    //Check for declaration conflicts
+    for(int i = 0; i < decls->NumElements(); i++)
+    {
+        decls->Nth(i)->Check();
     }
+
+
 }
 
 StmtBlock::StmtBlock(List<VarDecl*> *d, List<Stmt*> *s) {
@@ -61,6 +74,65 @@ void StmtBlock::PrintChildren(int indentLevel) {
     stmts->PrintAll(indentLevel+1);
 }
 
+void StmtBlock::Check() {
+
+    //Initial symbol table
+    //map<string, Decl*> *symbolTable = tables->Nth(0);
+    map<string, Decl*> *symbolTable = new map<string, Decl*>;
+    tables->InsertAt(symbolTable,0);
+
+    //Check for declaration conflicts
+    if(decls){
+        for(int i = 0; i < decls->NumElements(); i++){
+            decls->Nth(i)->Check();
+        }
+    }
+
+    //Check for statement conflicts in body
+    if(stmts)
+    {
+        std::cout << stmts->NumElements() << std::endl;
+
+        std::string brk ("BreakStmt");
+        std::string cont ("ContinueStmt");
+        std::string ret ("ReturnStmt");
+        std::string declstmt ("DeclStmt");
+        std::string stmtblock ("StmtBlock");
+
+        for(int i = 0; i < stmts->NumElements(); i++){    
+
+            // std::string s (stmts->Nth(i)->GetPrintNameForNode());
+            // yyltype *l = stmts->Nth(i)->GetLocation();
+
+            // //Check for incorrect use of break and continue
+            // if(s.compare(brk) == 0 && !escapeAllowed){
+            //     ReportError::BreakOutsideLoop(new BreakStmt(*l));
+            // }
+            // else if(s.compare(cont) == 0 && !escapeAllowed){
+            //     ReportError::ContinueOutsideLoop(new ContinueStmt(*l));
+            // }
+            // else if(s.compare(ret) == 0){
+            //     stmts->Nth(i)->Check();
+            //     retFound = true;
+            // }
+            // else if(s.compare(declstmt) == 0){
+            //     Decl* dec = stmts->Nth(i)->getDec();
+            //     dec->Check();
+            // }
+            // else if(s.compare(stmtblock) == 0){
+            //     tables->InsertAt(new map<string, Decl*>,0);
+            //     stmts->Nth(i)->Check();    
+            // }
+            // else{
+                stmts->Nth(i)->Check();
+            //}   
+
+        }
+    }
+
+    tables->RemoveAt(0);
+}
+
 DeclStmt::DeclStmt(Decl *d) {
     Assert(d != NULL);
     (decl=d)->SetParent(this);
@@ -68,6 +140,10 @@ DeclStmt::DeclStmt(Decl *d) {
 
 void DeclStmt::PrintChildren(int indentLevel) {
     decl->Print(indentLevel+1);
+}
+
+void DeclStmt::Check(){
+    decl->Check();
 }
 
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) { 
@@ -92,9 +168,55 @@ void ForStmt::PrintChildren(int indentLevel) {
     body->Print(indentLevel+1, "(body) ");
 }
 
+void ForStmt::Check(){
+
+    escapeAllowed = true;
+
+    init->Check();
+    test->Check();
+
+    if(test->retType != Type::boolType 
+        && test->retType != Type::errorType){
+        ReportError::TestNotBoolean(test);
+    }
+
+    step->Check();
+
+    //body->Check();
+    if(body){
+        //body->Check();
+        for(int i = 0; i < ((StmtBlock*)body)->getStmts()->NumElements(); i++){
+            ((StmtBlock*)body)->getStmts()->Nth(i)->Check();
+        }
+    }
+
+    escapeAllowed = false;
+}
+
 void WhileStmt::PrintChildren(int indentLevel) {
     test->Print(indentLevel+1, "(test) ");
     body->Print(indentLevel+1, "(body) ");
+}
+
+void WhileStmt::Check(){
+
+    escapeAllowed = true;
+
+    if(test) test->Check();
+
+    if(test->retType != Type::boolType){
+        ReportError::TestNotBoolean(test);
+    }
+
+    //if(body) body->Check();
+    if(body){
+        //body->Check();
+        for(int i = 0; i < ((StmtBlock*)body)->getStmts()->NumElements(); i++){
+            ((StmtBlock*)body)->getStmts()->Nth(i)->Check();
+        }
+    }
+
+    escapeAllowed = false;
 }
 
 IfStmt::IfStmt(Expr *t, Stmt *tb, Stmt *eb): ConditionalStmt(t, tb) { 
@@ -109,6 +231,45 @@ void IfStmt::PrintChildren(int indentLevel) {
     if (elseBody) elseBody->Print(indentLevel+1, "(else) ");
 }
 
+void IfStmt::Check(){
+    if(test){
+        test->Check();
+
+        if(test->retType != Type::boolType 
+            && test->retType != Type::errorType){
+             ReportError::TestNotBoolean(test);
+        }
+    }
+
+    if(body){
+        //body->Check();
+        for(int i = 0; i < ((StmtBlock*)body)->getStmts()->NumElements(); i++){
+            ((StmtBlock*)body)->getStmts()->Nth(i)->Check();
+        }
+    }
+
+    if(elseBody){
+        //elseBody->Check();
+        for(int i = 0; i < ((StmtBlock*)elseBody)->getStmts()->NumElements(); i++){
+            ((StmtBlock*)elseBody)->getStmts()->Nth(i)->Check();
+        }
+    } 
+
+    
+}
+
+void BreakStmt::Check(){
+    if(!escapeAllowed){
+        ReportError::BreakOutsideLoop(this);
+    }
+}
+
+void ContinueStmt::Check(){
+    if(!escapeAllowed){
+        ReportError::ContinueOutsideLoop(this);
+    }
+}
+
 
 ReturnStmt::ReturnStmt(yyltype loc, Expr *e) : Stmt(loc) { 
     expr = e;
@@ -120,6 +281,22 @@ void ReturnStmt::PrintChildren(int indentLevel) {
       expr->Print(indentLevel+1);
 }
 
+void ReturnStmt::Check(){
+
+    if(expr){
+        expr->Check();
+        if((expr->retType != currRetType) && (expr->retType != Type::errorType))	{
+            ReportError::ReturnMismatch(this, expr->retType, currRetType );
+        }
+    }
+    else{
+        if(currRetType != Type::voidType){
+            ReportError::ReturnMismatch(this, Type::voidType, currRetType );
+        }
+    }
+    retFound = true;
+}
+  
 SwitchLabel::SwitchLabel(Expr *l, Stmt *s) {
     Assert(l != NULL && s != NULL);
     (label=l)->SetParent(this);
@@ -137,6 +314,42 @@ void SwitchLabel::PrintChildren(int indentLevel) {
     if (stmt)  stmt->Print(indentLevel+1);
 }
 
+void Case::Check() {
+
+    std::string stmtblock("StmtBlock");
+    std::string s;
+
+    if(label) label->Check();
+    if(stmt){
+        s = stmt->GetPrintNameForNode();
+        if(s.compare(stmtblock) == 0){
+            for(int i = 0; i < ((StmtBlock*)stmt)->getStmts()->NumElements(); i++){
+            ((StmtBlock*)stmt)->getStmts()->Nth(i)->Check();
+        }
+        }
+        else{
+            stmt->Check();
+        }
+    }
+}
+
+void Default::Check() {
+    std::string stmtblock("StmtBlock");
+    std::string s;
+
+    if(stmt){
+        s = stmt->GetPrintNameForNode();
+        if(s.compare(stmtblock) == 0){
+            for(int i = 0; i < ((StmtBlock*)stmt)->getStmts()->NumElements(); i++){
+            ((StmtBlock*)stmt)->getStmts()->Nth(i)->Check();
+        }
+        }
+        else{
+            stmt->Check();
+        }
+    }
+}
+
 SwitchStmt::SwitchStmt(Expr *e, List<Stmt *> *c, Default *d) {
     Assert(e != NULL && c != NULL && c->NumElements() != 0 );
     (expr=e)->SetParent(this);
@@ -150,4 +363,20 @@ void SwitchStmt::PrintChildren(int indentLevel) {
     if (cases) cases->PrintAll(indentLevel+1);
     if (def) def->Print(indentLevel+1);
 }
+
+void SwitchStmt::Check(){
+    escapeAllowed = true;
+
+    if(expr) expr->Check();
+
+    for(int i = 0; i < cases->NumElements(); i++){
+        cases->Nth(i)->Check();
+    }
+
+    if(def) def->Check();
+
+    escapeAllowed = false;
+}
+
+
 

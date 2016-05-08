@@ -19,6 +19,7 @@
 #include "scanner.h" // for yylex
 #include "parser.h"
 #include "errors.h"
+#include <string.h>
 
 void yyerror(const char *msg); // standard error-handling routine
 
@@ -65,13 +66,14 @@ void yyerror(const char *msg); // standard error-handling routine
  * Bison will assign unique numbers to these and export the #define
  * in the generated y.tab.h header file.
  */
-%token   T_Void T_Bool T_Int T_Float T_Uint
+%token   T_Void T_Bool T_Int T_Float T_Uint T_Struct
 %token   T_Bvec2 T_Bvec3 T_Bvec4 T_Ivec2 T_Ivec3 T_Ivec4
 %token   T_Uvec2 T_Uvec3 T_Uvec4 T_Vec2 T_Vec3 T_Vec4
 %token   T_Mat2  T_Mat3 T_Mat4
 %token   T_While T_For T_If T_Else T_Return T_Break T_Continue T_Do 
 %token   T_Switch T_Case T_Default
-%token   T_In T_Out T_Const T_Uniform
+%token   T_In T_Out T_Inout T_Const T_Uniform
+%token   T_Layout
 %token   T_LeftParen T_RightParen T_LeftBracket T_RightBracket T_LeftBrace T_RightBrace
 %token   T_Dot T_Comma T_Colon T_Semicolon T_Question
 
@@ -90,8 +92,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %nonassoc LOWEST
 %nonassoc LOWER_THAN_ELSE
 %nonassoc T_Else
-%right T_Equal T_MulAssign T_DivAssign T_AddAssign T_SubAssign
-%right T_Question T_Colon
+%nonassoc T_Equal
 %left T_EQ T_NE T_LeftAngle T_RightAngle T_And T_Or T_GreaterEqual
 %left T_Plus T_Dash T_Star T_Slash
 
@@ -114,7 +115,7 @@ void yyerror(const char *msg); // standard error-handling routine
 %type <typeQualifier> TypeQualify
 %type <expression> PrimaryExpr PostfixExpr UnaryExpr MultiExpr AdditionExpr RelationExpr Initializer FunctionCallExpr FunctionCallHeaderWithParameters FunctionCallHeaderNoParameters
 %type <expression> EqualityExpr LogicAndExpr LogicOrExpr Expression
- /*%type <floatConstant> Initializer*/
+    /* %type <floatConstant> Initializer */
 %type <varDecl>    SingleDecl
 %type <varDeclList> ParameterList
 %type <stmt>       Statement
@@ -308,6 +309,7 @@ ForStmt            : T_For T_LeftParen Expression T_Semicolon Expression T_Semic
                                  }
                    ;
 
+
 PrimaryExpr        : T_Identifier    { Identifier *id = new Identifier(yylloc, (const char*)$1);
                                        $$ = new VarExpr(yyloc, id);
                                      }
@@ -356,6 +358,8 @@ PostfixExpr        : PrimaryExpr     { $$ = $1; }
                                           $$ = new FieldAccess($1, id);
                                        }
                    ;
+
+
 
 UnaryExpr          : PostfixExpr     { $$ = $1; }
                    | T_Inc UnaryExpr
@@ -433,12 +437,12 @@ EqualityExpr       : RelationExpr       { $$ = $1; }
                    | EqualityExpr T_EQ RelationExpr 
                            {
                              Operator *op = new Operator(yylloc, $2);
-                             $$ = new ArithmeticExpr($1, op, $3);
+                             $$ = new EqualityExpr($1, op, $3);
                            }
                    | EqualityExpr T_NE RelationExpr 
                            {
                              Operator *op = new Operator(yylloc, $2);
-                             $$ = new ArithmeticExpr($1, op, $3);
+                             $$ = new EqualityExpr($1, op, $3);
                            }
                    ;
 
@@ -446,7 +450,7 @@ LogicAndExpr       : EqualityExpr       { $$ = $1; }
                    | LogicAndExpr T_And EqualityExpr
                            {
                              Operator *op = new Operator(yylloc, $2);
-                             $$ = new ArithmeticExpr($1, op, $3);
+                             $$ = new LogicalExpr($1, op, $3);
                            }
                    ;
 
@@ -454,7 +458,7 @@ LogicOrExpr        : LogicAndExpr       { $$ = $1; }
                    | LogicOrExpr T_Or LogicAndExpr
                            {
                              Operator *op = new Operator(yylloc, $2);
-                             $$ = new ArithmeticExpr($1, op, $3);
+                             $$ = new LogicalExpr($1, op, $3);
                            }
                    ;
 

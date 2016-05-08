@@ -40,18 +40,13 @@
 #include <stdlib.h>   // for NULL
 #include "location.h"
 #include <iostream>
-#include "symtable.h"
-using namespace std;
 
-class SymbolTable;
-class MyStack;
-class FnDecl;
+using namespace std;
 
 class Node  {
   protected:
     yyltype *location;
     Node *parent;
-    static SymbolTable *sTable;
 
   public:
     Node(yyltype loc);
@@ -68,8 +63,6 @@ class Node  {
     // subclasses should override PrintChildren() instead
     void Print(int indentLevel, const char *label = NULL); 
     virtual void PrintChildren(int indentLevel)  {}
-
-    virtual void Check() {}
 };
    
 
@@ -81,9 +74,9 @@ class Identifier : public Node
   public:
     Identifier(yyltype loc, const char *name);
     const char *GetPrintNameForNode()   { return "Identifier"; }
-    char *GetName() const { return name; }
     void PrintChildren(int indentLevel);
     friend ostream& operator<<(ostream& out, Identifier *id) { return out << id->name; }
+    const string getName(){ return name; }
 };
 
 
