@@ -280,14 +280,14 @@ void ArrayAccess::Check(){
      base->Check();
      VarExpr *v = dynamic_cast<VarExpr *>(base);
      ArrayType *a = dynamic_cast<ArrayType *>(v->retType);
-     if((a->GetElemType() != Type::intType)&&
-        (a->GetElemType() != Type::floatType)&&
-        (a->GetElemType() != Type::boolType)&&
-        (a->GetElemType() != Type::uintType)&&
-        (a->GetElemType() != Type::voidType)&&
-        (a->GetElemType() != Type::mat2Type)&&
-        (a->GetElemType() != Type::mat3Type)&&
-        (a->GetElemType() != Type::mat4Type))
+     if((a->GetElemType() == Type::errorType))
+//        (a->GetElemType() != Type::floatType)&&
+//        (a->GetElemType() != Type::boolType)&&
+//        (a->GetElemType() != Type::uintType)&&
+//        (a->GetElemType() != Type::voidType)&&
+//        (a->GetElemType() != Type::mat2Type)&&
+//        (a->GetElemType() != Type::mat3Type)&&
+//        (a->GetElemType() != Type::mat4Type))
      {
 //        cout<<base->retType;
 //        cout<< "\n";
@@ -299,28 +299,6 @@ void ArrayAccess::Check(){
      }
   }
 
-/*
-  bool found = false;
-
-  map<string, Decl*> *currTable;
-
-  for(int i = 0; i < tables->NumElements(); i++){
-
-    currTable = tables->Nth(i);
-    map<string, Decl*>::iterator it = currTable->find(id->getName());
-
-    if( it != currTable->end() ){
-      d = it->second;
-      found = true;
-    }
-
-  }
-
-  if(!found){
-    ReportError::IdentifierNotDeclared(id, LookingForVariable);
-  }
-
-  this->setType();*/
 
 } 
 FieldAccess::FieldAccess(Expr *b, Identifier *f) 
@@ -380,6 +358,7 @@ void FieldAccess::Check(){
     str.erase(std::remove(str.begin(), str.end(), chars[i]), str.end());
   }
 
+
   if(str.length() >= 1){
     ReportError::InvalidSwizzle(field, base);
     this->retType = Type::errorType;
@@ -403,39 +382,55 @@ Call::Call(yyltype loc, Expr *b, Identifier *f, List<Expr*> *a) : Expr(loc)  {
 }
 
 void Call::Check(){
-  Decl* d;
-  bool found = false;
-
-  map<string, Decl*> *currTable;
-
-
-       
-  for(int i = 0; i < tables->NumElements(); i++){
+ bool found = false;
+ map<string, Decl*> *currTable;
+ for(int i = 0; i < tables->NumElements(); i++){
 
     currTable = tables->Nth(i);
     map<string, Decl*>::iterator it = currTable->find(field->getName());
-
+    /*  FnDecl* fDecl = 
+        dynamic_cast<FnDecl*>( currTable->find(field->getName());
+*/
     if( it != currTable->end() ){
-/*
-    if( static_cast<int>(actuals->size()) > ( (currTable->at(field->getName()))->NumElements() ) ){
-    ReportError::ExtraFormals(this->GetIdentifier(), static_cast<int>(actuals->size()),currTable->at(field->getName())->NumElements() );
+      //d = it->second;
+      //found = true;
+      FnDecl* fDecl = 
+           dynamic_cast<FnDecl*>(it->second);
+      if(fDecl){
+          List<VarDecl*> *formals = fDecl->GetFormals();
+         if(actuals->NumElements() > formals->NumElements()){
+             ReportError::ExtraFormals(field, 
+                formals->NumElements(), actuals->NumElements());
+             this->retType = Type::errorType;
+         }else if(actuals->NumElements() < formals->NumElements()){
+             ReportError::LessFormals(field,
+                formals->NumElements(), actuals->NumElements());
+             this->retType = Type::errorType;
+
+         }else{
+            for(int pat = 0;pat< actuals->NumElements(); pat++ ){
+               if(actuals->Nth(pat)->retType != 
+                  formals->Nth(pat)->getType()){
+                  ReportError::FormalsTypeMismatch(field, pat, 
+                     formals->Nth(pat)->getType(),
+                     actuals->Nth(pat)->retType);
+                     this->retType = Type::errorType;
+
+                     break;
+                }
+            }
+        }
+        found = true;
+        this->retType = it->second->getType();
+      }else{
+         ReportError::NotAFunction(field);
+      }
     }
-    if(){	
-	ReportError::LessFormals(this->GetIdentifier(), static_cast<int>(actuals->size()),currTable->at(field->getName())->NumElements() );
-    } */
-
-
-      d = it->second;
-      found = true;
-    }
-
   }
-
   if(!found){
     ReportError::IdentifierNotDeclared(field, LookingForVariable);
+    this->retType= Type::errorType;
   }
-
-  this->setType();
 
 }
 

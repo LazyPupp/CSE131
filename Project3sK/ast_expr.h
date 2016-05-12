@@ -29,6 +29,7 @@ class Expr : public Stmt
     friend std::ostream& operator<< (std::ostream& stream, Expr * expr) {
         return stream << expr->GetPrintNameForNode();
     }
+    void Check(){};
 };
 
 class ExprError : public Expr
