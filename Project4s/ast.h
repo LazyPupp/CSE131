@@ -41,6 +41,10 @@
 #include "location.h"
 #include <iostream>
 
+
+#include <string>
+#include "irgen.h"
+
 using namespace std;
 
 class SymbolTable;
@@ -57,9 +61,12 @@ class Node  {
     Node();
     virtual ~Node() {}
     
+    static IRGenerator irgen;
+
     yyltype *GetLocation()   { return location; }
     void SetParent(Node *p)  { parent = p; }
     Node *GetParent()        { return parent; }
+    static llvm::Module::global_iterator globs;
 
     virtual const char *GetPrintNameForNode() = 0;
     
@@ -67,6 +74,7 @@ class Node  {
     // subclasses should override PrintChildren() instead
     void Print(int indentLevel, const char *label = NULL); 
     virtual void PrintChildren(int indentLevel)  {}
+    static llvm::Module *mod;
 
     virtual void Emit() {}
 };
@@ -78,6 +86,7 @@ class Identifier : public Node
     char *name;
     
   public:
+    string getName() { return name; }
     Identifier(yyltype loc, const char *name);
     const char *GetPrintNameForNode()   { return "Identifier"; }
     char *GetName() const { return name; }

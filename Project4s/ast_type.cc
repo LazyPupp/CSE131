@@ -51,6 +51,25 @@ void Type::PrintChildren(int indentLevel) {
     printf("%s", typeName);
 }
 
+llvm::Type *Type::llvmType(Type *ty){
+    llvm::Type *t;
+
+    if(ty == Type::intType){
+        t = irgen.GetIntType();
+    }
+    else if(ty == Type::floatType){
+        t = irgen.GetFloatType();
+    }
+    else if(ty == Type::boolType){
+        t = irgen.GetBoolType();
+    }
+    else{
+        t = irgen.GetIntType();
+    }
+
+    return t;
+}
+
 TypeQualifier::TypeQualifier(const char *n) {
     Assert(n);
     typeQualifierName = strdup(n);

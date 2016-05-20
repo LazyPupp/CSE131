@@ -12,7 +12,7 @@
 
 #ifndef _H_ast_decl
 #define _H_ast_decl
-
+#include <string>
 #include "ast.h"
 #include "list.h"
 #include "ast_expr.h"
@@ -29,8 +29,17 @@ class Decl : public Node
 {
   protected:
     Identifier *id;
+    llvm::Value *mem;
   
   public:
+
+    virtual void Emit() {}
+
+    std::string getName() { return id->getName(); }
+    llvm::Type *llvmType(Type *t);
+
+    llvm::Value *GetMem() { return mem; }
+    void SetMem(llvm::AllocaInst *a) { mem = a; } 
     Decl() : id(NULL) {}
     Decl(Identifier *name);
     Identifier *GetIdentifier() const { return id; }
@@ -43,6 +52,7 @@ class VarDecl : public Decl
   protected:
     Type *type;
     TypeQualifier *typeq;
+
     Expr *assignTo;
     
   public:
@@ -53,6 +63,7 @@ class VarDecl : public Decl
     const char *GetPrintNameForNode() { return "VarDecl"; }
     void PrintChildren(int indentLevel);
     Type *GetType() const { return type; }
+    void Emit();
 };
 
 class VarDeclError : public VarDecl
@@ -67,6 +78,7 @@ class FnDecl : public Decl
   protected:
     List<VarDecl*> *formals;
     Type *returnType;
+
     TypeQualifier *returnTypeq;
     Stmt *body;
     
@@ -74,13 +86,16 @@ class FnDecl : public Decl
     FnDecl() : Decl(), formals(NULL), returnType(NULL), returnTypeq(NULL), body(NULL) {}
     FnDecl(Identifier *name, Type *returnType, List<VarDecl*> *formals);
     FnDecl(Identifier *name, Type *returnType, TypeQualifier *returnTypeq, List<VarDecl*> *formals);
+    Type *GetType() const { return returnType; }
+    List<VarDecl*> *GetFormals() {return formals;}
     void SetFunctionBody(Stmt *b);
     const char *GetPrintNameForNode() { return "FnDecl"; }
     void PrintChildren(int indentLevel);
 
-    Type *GetType() const { return returnType; }
-    List<VarDecl*> *GetFormals() {return formals;}
+
+    void Emit();
 };
+
 
 class FormalsError : public FnDecl
 {
