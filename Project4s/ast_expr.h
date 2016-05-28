@@ -205,7 +205,7 @@ class ConditionalExpr : public Expr
     ConditionalExpr(Expr *c, Expr *t, Expr *f);
     void PrintChildren(int indentLevel);
     const char *GetPrintNameForNode() { return "ConditionalExpr"; }
-  //  void Emit();
+    void Emit();
     llvm::Value *GetValue() { return val; }
 
 };
