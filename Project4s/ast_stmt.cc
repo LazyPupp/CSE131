@@ -93,7 +93,7 @@ void StmtBlock::PrintChildren(int indentLevel) {
 }
 
 void StmtBlock::Emit(){
-
+    bool flag = true;
     map<string, Decl*> *symbolTable = new map<string, Decl*>;
     tables->InsertAt(symbolTable,0); 
     int b = 0;
@@ -194,6 +194,8 @@ void WhileStmt::PrintChildren(int indentLevel) {
 }
 
 void WhileStmt::Emit(){
+    bool flag = false;
+    int z = 0;
     llvm::LLVMContext *context = irgen.GetContext(); //Grabs the local environment
     llvm::BasicBlock *bb = irgen.GetBasicBlock();
     llvm::Function *f = irgen.GetFunction();
@@ -237,6 +239,7 @@ void IfStmt::PrintChildren(int indentLevel) {
 
 void IfStmt::Emit(){
     //environment
+   // bool flag = true;
     llvm::BasicBlock *bb = irgen.GetBasicBlock();
     llvm::LLVMContext *context = irgen.GetContext();
     llvm::Function *f = irgen.GetFunction();
@@ -361,7 +364,7 @@ void SwitchStmt::Emit(){
 
     llvm::BasicBlock *fBB = llvm::BasicBlock::Create(*context, "footBB", f); //footer bb
     feet->InsertAt(fBB,0);
-
+    //bool flag;
     bool foundDefault = false;
     List<llvm::BasicBlock*> *caseBBs = new List<llvm::BasicBlock*>; //handles list
     List<int> *labels = new List<int>;
@@ -392,7 +395,7 @@ void SwitchStmt::Emit(){
         stmt->Emit();
 	num++;
     }
-
+//couldn't find default statement
     if(!foundDefault){
         caseBBs->Append(llvm::BasicBlock::Create(*context, "defaultBB", f));
     }
@@ -404,7 +407,7 @@ void SwitchStmt::Emit(){
 
     llvm::SwitchInst *si = llvm::SwitchInst::Create(expr->GetValue(), defaultBB, 
         caseBBs->NumElements()-1, bb);
-
+  //bool found = true;
     int k = 0;
     while(k < caseBBs->NumElements()){
 

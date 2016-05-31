@@ -29,9 +29,14 @@ void FloatConstant::PrintChildren(int indentLevel) {
 
 BoolConstant::BoolConstant(yyltype loc, bool val) : Expr(loc) {
     value = val;
-    int check;		
+    int check;
+    int counter = 0;		
     if(val == false){ 
-	check = 0;	
+	check = 0;
+	counter = 0;	
+    }
+    else if(counter == 1){
+	check = 1;
     }	
     else{ 
 	check = 1;
@@ -49,6 +54,14 @@ VarExpr::VarExpr(yyltype loc, Identifier *ident) : Expr(loc) {
 
 void VarExpr::PrintChildren(int indentLevel) {
     id->Print(indentLevel+1);
+}
+
+void ConditionalExpr::Emit(){
+	llvm::BasicBlock *bb = irgen.GetBasicBlock();
+cond->Emit();
+trueExpr->Emit();
+falseExpr->Emit();	
+	val = llvm::SelectInst::Create(cond->val,trueExpr->val,falseExpr->val,"ConditionalExpr",bb);
 }
 
 void VarExpr::Emit(){		
@@ -563,7 +576,6 @@ void FieldAccess::Emit(){
   List<int> *swizzle = new List<int>;
   unsigned int e = 0;
   while( e < field->getName().length()){
-    e++;
     if(field->getName()[e] == 'x') 
 	swizzle->Append(0);
     else if(field->getName()[e] == 'y') 
@@ -572,6 +584,7 @@ void FieldAccess::Emit(){
 	 swizzle->Append(2);
     else 
 	swizzle->Append(3);
+    e++;
   }
 //check the indexes specified and do appropriate stuff
    if(swizzle->NumElements() == 1){
@@ -583,8 +596,8 @@ void FieldAccess::Emit(){
     val = llvm::ConstantVector::getSplat(swizzle->NumElements(), zeros);
     int r = 0;
     while(r < swizzle->NumElements()){
-      llvm::Constant *idxa = llvm::ConstantInt::get(irgen.GetIntType(), swizzle->Nth(e));
-      llvm::Constant *idxb = llvm::ConstantInt::get(irgen.GetIntType(), e);
+      llvm::Constant *idxa = llvm::ConstantInt::get(irgen.GetIntType(), swizzle->Nth(r));
+      llvm::Constant *idxb = llvm::ConstantInt::get(irgen.GetIntType(), r);
       llvm::Value *param = llvm::ExtractElementInst::Create(baseAddr, idxa, "", bb);
       val = llvm::InsertElementInst::Create(val, param, idxb, "", bb);
       r++;
