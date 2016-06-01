@@ -1,0 +1,14 @@
+Patrick Nguyen A10847376
+Kyle Szeto A10907296
+
+CSE131  Project 4 Description
+
+For this project, we had to learn how to use the llvm compiler through piazza 
+and through http://llvm.org/. We started the program by creating a symbol 
+table; the structure of it is a list of maps like PA3. After creating the symbol
+table, we went to ast.h and ast_stmt.cc file to initialize the symbol table.
+Then we went to the ast_decl.cc and ast_decl.h file to do the FnDecl and
+VarDecl. Then we went to ast_expr.cc, ast_expr.h, ast_stmt.cc, ast_stmt.h,
+irgen.cc, and irgen.h file to do the rest of the program. (Ex: vectors, arrays)
+
+
